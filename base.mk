@@ -55,6 +55,10 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
 	device/phh/treble/charger.rc:system/etc/init/charger.rc
 
+#Charger image
+PRODUCT_PACKAGES += \
+    product_charger_res_images
+
 #USB Audio
 PRODUCT_COPY_FILES += \
 	frameworks/av/services/audiopolicy/config/usb_audio_policy_configuration.xml:system/etc/usb_audio_policy_configuration.xml \
