@@ -49,7 +49,15 @@ PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
 #VNDK config files
 PRODUCT_COPY_FILES += \
 	device/phh/treble/vndk-detect:system/bin/vndk-detect \
-	device/phh/treble/vndk.rc:system/etc/init/vndk.rc \
+	device/phh/treble/vndk.rc:system/etc/init/vndk.rc
+
+#Charger config files
+PRODUCT_COPY_FILES += \
+	device/phh/treble/charger.rc:system/etc/init/charger.rc
+
+#Charger image
+PRODUCT_PACKAGES += \
+    product_charger_res_images
 
 #USB Audio
 PRODUCT_COPY_FILES += \
@@ -84,11 +92,6 @@ PRODUCT_PACKAGES += \
 	bootctl \
 	vintf \
 
-# Fix Offline Charging on Huawmeme
-PRODUCT_PACKAGES += \
-	huawei-charger
-PRODUCT_COPY_FILES += \
-	$(call find-copy-subdir-files,*,device/phh/treble/huawei_charger/files,system/etc/charger)
 
 PRODUCT_COPY_FILES += \
 	device/phh/treble/twrp/twrp.rc:system/etc/init/twrp.rc \
