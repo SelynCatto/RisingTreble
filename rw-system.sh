@@ -1165,5 +1165,5 @@ fi
 # Fixes Vibrator on TECNO POVA 4 Pro
 
 if getprop ro.product.vendor.device | grep -q -e TECNO-LG8n; then
-  chown -R system:system /sys/class/leds/vibrator_single/
+    chown -R system:system /sys/class/leds/vibrator_single/
 fi
