@@ -263,3 +263,5 @@ PRODUCT_PACKAGES += \
 # Two-pane layout in Settings
 PRODUCT_PACKAGES += \
     androidx.window.extensions
+
+PRODUCT_EXTRA_VNDK_VERSIONS += 28
