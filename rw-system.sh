@@ -1134,7 +1134,7 @@ setprop debug.phh.props.omposer-service vendor
 
 # On those Unisoc chips, Android's bluetooth stack will try to send a LE_EXTENDED_SCAN command, which isn't actually supported
 # The support of that command inherits from a "le vendor version". Force this at 0 to disable the use of that command
-if getprop ro.vendor.gnsschip |grep -q marlin3lite;then
+if getprop ro.vendor.gnsschip |grep -q marlin3lite || getprop ro.board.platform |grep -q msm8996;then
     setprop persist.sys.bt.max_vendor_cap 0
 fi
 
