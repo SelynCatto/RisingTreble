@@ -317,6 +317,12 @@ changeKeylayout() {
         changed=true
     fi
 
+    if getprop ro.vendor.build.fingerprint | grep -q -e nubia/NX669; then
+        cp /system/phh/nubia-nubia_goodix_ts.kl /mnt/phh/keylayout/nubia_goodix_ts.kl
+        chmod 0644 /mnt/phh/keylayout/nubia_goodix_ts.kl
+        changed=true
+    fi
+
     if [ "$changed" = true ]; then
         mount -o bind /mnt/phh/keylayout /system/usr/keylayout
         restorecon -R /system/usr/keylayout
@@ -725,6 +731,9 @@ if getprop ro.vendor.build.fingerprint | grep -q -e nubia/NX669; then
     umount /vendor/etc/audio
     sku="$(getprop ro.boot.product.vendor.sku)"
     mount /vendor/etc/audio/sku_${sku}_qssi/audio_policy_configuration.xml /vendor/etc/audio/sku_$sku/audio_policy_configuration.xml
+    chmod 0666 /sys/kernel/lcd_enhance/hbm_state
+    # Disable back panel touch (which would hide keyboard if accidentally touched)
+    setprop persist.sys.phh.evgrab nubia_sar0_channel0
 fi
 
 # For ZF8, the "best" audio policy isn't the one for QSSI
