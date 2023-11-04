@@ -92,6 +92,11 @@ fixSPL() {
     setprop ro.keymaster.xxx.vbmeta_state unlocked
     setprop ro.keymaster.xxx.verifiedbootstate orange
 
+    if getprop ro.vendor.build.fingerprint |grep -q -i samsung/j6lte;then
+        setprop debug.phh.props.ter@3.0-service keymaster
+        setprop debug.phh.props.mcDriverDaemon keymaster
+    fi
+
     # Found on Cubot Pocket 3: trustkernel work only on stock model name or AOSP GSI model name
     if [ -f /vendor/bin/hw/android.hardware.keymaster@4.1-service.trustkernel ] && [ -f /proc/tkcore/tkcore_log ];then
         setprop debug.phh.props.teed keymaster
