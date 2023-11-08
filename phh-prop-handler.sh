@@ -122,8 +122,11 @@ if [ "$1" == "persist.sys.phh.oppo.usbotg" ]; then
     if [[ "$prop_value" != "0" && "$prop_value" != "1" ]]; then
         exit 1
     fi
-
-    echo "$prop_value" >/sys/class/power_supply/usb/otg_switch
+    if [ -e /sys/class/power_supply/usb/otg_switch ]; then
+        echo "$prop_value" >/sys/class/power_supply/usb/otg_switch
+    else
+        echo "$prop_value" >/sys/class/oplus_chg/usb/otg_switch
+    fi
     exit
 fi
 
