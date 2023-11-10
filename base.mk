@@ -262,7 +262,9 @@ PRODUCT_PACKAGES += \
     QcRilAm
 
 PRODUCT_PACKAGES += \
-	slsi-booted
+	slsi-booted \
+	Iwlan \
+	QualifiedNetworksService \
 
 # Two-pane layout in Settings
 PRODUCT_PACKAGES += \
