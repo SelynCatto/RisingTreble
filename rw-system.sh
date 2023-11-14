@@ -317,7 +317,7 @@ changeKeylayout() {
           changed=true
     fi
 
-    if getprop ro.vendor.build.fingerprint |grep -iq tecno/kd7;then
+    if getprop ro.vendor.build.fingerprint |grep -iq -e tecno/kd7 -e infinix/x6883b -e infinix/x678b;then
         # Enable dt2w
         echo cc1 > /proc/gesture_function
         cp /system/phh/tecno-touchpanel.kl /mnt/phh/keylayout/mtk-tpd.kl
