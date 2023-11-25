@@ -306,3 +306,10 @@ cc_binary {
 		"evgrab.rc"
 	],
 }
+
+cc_binary {
+	name: "re-libged_sys",
+	srcs: [
+		"re-libged_sys.cpp",
+	],
+}
