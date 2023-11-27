@@ -752,7 +752,6 @@ if getprop ro.vendor.build.fingerprint |grep -q -e /ASUS_I006D:;then
 fi
 
 setprop ctl.stop console
-dmesg -n 1
 copyprop() {
     p="$(getprop "$2")"
     if [ "$p" ]; then
