@@ -451,7 +451,7 @@ if getprop ro.vendor.build.fingerprint | grep -q -i \
     -e xiaomi/nitrogen -e xiaomi/whyred -e xiaomi/platina \
     -e xiaomi/ysl -e nubia/nx60 -e nubia/nx61 -e xiaomi/tulip \
     -e xiaomi/lavender -e xiaomi/olive -e xiaomi/olivelite -e xiaomi/pine \
-    -e Redmi/lancelot -e Redmi/galahad -e POCO/evergreen; then
+    -e POCO/evergreen; then
     setprop persist.sys.qcom-brightness "$(cat /sys/class/leds/lcd-backlight/max_brightness)"
 fi
 
@@ -606,6 +606,19 @@ fi
 if getprop ro.vendor.build.fingerprint | grep -iq -e Redmi/merlin; then
     setprop debug.sf.latch_unsignaled 1
     setprop debug.sf.enable_hwc_vds 0
+fi
+
+if getprop ro.vendor.build.fingerprint | grep -iq -e Redmi/lancelot -e Redmi/galahad; then
+    setprop persist.sys.qcom-brightness "$(cat /sys/class/leds/lcd-backlight/max_brightness)"
+    setprop debug.sf.use_phase_offsets_as_durations 1
+    setprop debug.sf.late.sf.duration 27600000
+    setprop debug.sf.late.app.duration 20000000
+    setprop debug.sf.early.sf.duration 27600000
+    setprop debug.sf.early.app.duration 20000000
+    setprop debug.sf.earlyGl.sf.duration 27600000
+    setprop debug.sf.earlyGl.app.duration 20000000
+    setprop debug.sf.hwc.min.duration 17000000
+    setprop debug.sf.disable_client_composition_cache 1
 fi
 
 if getprop ro.vendor.build.fingerprint | grep -iq -e Redmi/rosemary \
