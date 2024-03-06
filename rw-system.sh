@@ -610,23 +610,15 @@ fi
 
 if getprop ro.vendor.build.fingerprint | grep -iq -e Redmi/lancelot -e Redmi/galahad; then
     setprop persist.sys.qcom-brightness "$(cat /sys/class/leds/lcd-backlight/max_brightness)"
-    setprop debug.sf.early.app.duration 20000000
-    setprop debug.sf.earlyGl.app.duration 20000000
-    setprop debug.sf.earlyGl.sf.duration 27600000
-    setprop debug.sf.early.sf.duration 27600000
-    setprop debug.sf.hwc.min.duration 17000000
-    setprop debug.sf.late.app.duration 20000000
-    setprop debug.sf.late.sf.duration 27600000
     setprop debug.sf.use_phase_offsets_as_durations 1
-    setprop ro.surface_flinger.enable_frame_rate_override false
-    setprop ro.surface_flinger.force_hwc_copy_for_virtual_displays true
-    setprop ro.surface_flinger.max_frame_buffer_acquired_buffers 3
-    setprop ro.surface_flinger.primary_display_orientation ORIENTATION_0
-    setprop debug.sf.auto_latch_unsignaled 1
+    setprop debug.sf.late.sf.duration 27600000
+    setprop debug.sf.late.app.duration 20000000
+    setprop debug.sf.early.sf.duration 27600000
+    setprop debug.sf.early.app.duration 20000000
+    setprop debug.sf.earlyGl.sf.duration 27600000
+    setprop debug.sf.earlyGl.app.duration 20000000
+    setprop debug.sf.hwc.min.duration 17000000
     setprop debug.sf.disable_client_composition_cache 1
-    setprop debug.sf.enable_gl_backpressure 1
-    setprop debug.sf.enable_transaction_tracing false
-    setprop debug.sf.predict_hwc_composition_strategy 0
 fi
 
 if getprop ro.vendor.build.fingerprint | grep -iq -e Redmi/rosemary \
