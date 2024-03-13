@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,39 +24,32 @@ namespace hardware {
 namespace bluetooth {
 namespace audio {
 
-class A2dpOffloadAudioProvider : public BluetoothAudioProvider {
+class HfpSoftwareAudioProvider : public BluetoothAudioProvider {
  public:
-  A2dpOffloadAudioProvider();
+  HfpSoftwareAudioProvider();
 
-  bool isValid(const SessionType& session_type) override;
+  bool isValid(const SessionType& sessionType) override;
 
   ndk::ScopedAStatus startSession(
       const std::shared_ptr<IBluetoothAudioPort>& host_if,
       const AudioConfiguration& audio_config,
-      const std::vector<LatencyMode>& latency_modes,
-      DataMQDesc* _aidl_return) override;
-
-  ndk::ScopedAStatus parseA2dpConfiguration(
-      const CodecId& codec_id, const std::vector<uint8_t>& configuration,
-      CodecParameters* codec_parameters, A2dpStatus* _aidl_return) override;
-
-  ndk::ScopedAStatus getA2dpConfiguration(
-      const std::vector<A2dpRemoteCapabilities>& remote_a2dp_capabilities,
-      const A2dpConfigurationHint& hint,
-      std::optional<audio::A2dpConfiguration>* _aidl_return) override;
+      const std::vector<LatencyMode>& latency_modes, DataMQDesc* _aidl_return);
 
  private:
+  // audio data queue for software encoding
+  std::unique_ptr<DataMQ> data_mq_;
+
   ndk::ScopedAStatus onSessionReady(DataMQDesc* _aidl_return) override;
 };
 
-class A2dpOffloadEncodingAudioProvider : public A2dpOffloadAudioProvider {
+class HfpSoftwareOutputAudioProvider : public HfpSoftwareAudioProvider {
  public:
-  A2dpOffloadEncodingAudioProvider();
+  HfpSoftwareOutputAudioProvider();
 };
 
-class A2dpOffloadDecodingAudioProvider : public A2dpOffloadAudioProvider {
+class HfpSoftwareInputAudioProvider : public HfpSoftwareAudioProvider {
  public:
-  A2dpOffloadDecodingAudioProvider();
+  HfpSoftwareInputAudioProvider();
 };
 
 }  // namespace audio

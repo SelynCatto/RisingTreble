@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <aidl/android/hardware/audio/common/SinkMetadata.h>
+#include <aidl/android/hardware/audio/common/SourceMetadata.h>
 #include <aidl/android/hardware/bluetooth/audio/BluetoothAudioStatus.h>
 #include <aidl/android/hardware/bluetooth/audio/SessionType.h>
 #include <hardware/audio.h>
@@ -94,12 +96,6 @@ class BluetoothAudioPort {
   }
 
   /***
-   * Called by the Audio framework / HAL when the metadata of the stream's
-   * source has been changed.
-   ***/
-  virtual void UpdateSourceMetadata(const source_metadata*) const {};
-
-  /***
    * Return the current BluetoothStreamState
    ***/
   virtual BluetoothStreamState GetState() const {
@@ -112,6 +108,8 @@ class BluetoothAudioPort {
   virtual void SetState(BluetoothStreamState state) {}
 
   virtual bool IsA2dp() const { return false; }
+
+  virtual bool IsLeAudio() const { return false; }
 
   virtual bool GetPreferredDataIntervalUs(size_t* interval_us) const {
     return false;
@@ -146,14 +144,13 @@ class BluetoothAudioPortAidl : public BluetoothAudioPort {
   bool GetPresentationPosition(uint64_t* delay_ns, uint64_t* byte,
                                timespec* timestamp) const override;
 
-  void UpdateSourceMetadata(
-      const source_metadata* source_metadata) const override;
+  void UpdateSourceMetadata(const source_metadata_v7* source_metadata) const;
 
   /***
    * Called by the Audio framework / HAL when the metadata of the stream's
    * sink has been changed.
    ***/
-  virtual void UpdateSinkMetadata(const sink_metadata* sink_metadata) const;
+  virtual void UpdateSinkMetadata(const sink_metadata_v7* sink_metadata) const;
 
   BluetoothStreamState GetState() const override;
 
@@ -163,6 +160,20 @@ class BluetoothAudioPortAidl : public BluetoothAudioPort {
     return session_type_ == SessionType::A2DP_SOFTWARE_ENCODING_DATAPATH ||
            session_type_ ==
                SessionType::A2DP_HARDWARE_OFFLOAD_ENCODING_DATAPATH;
+  }
+
+  bool IsLeAudio() const override {
+    return session_type_ == SessionType::LE_AUDIO_SOFTWARE_ENCODING_DATAPATH ||
+           session_type_ == SessionType::LE_AUDIO_SOFTWARE_DECODING_DATAPATH ||
+           session_type_ ==
+               SessionType::LE_AUDIO_HARDWARE_OFFLOAD_ENCODING_DATAPATH ||
+           session_type_ ==
+               SessionType::LE_AUDIO_HARDWARE_OFFLOAD_DECODING_DATAPATH ||
+           session_type_ ==
+               SessionType::LE_AUDIO_BROADCAST_SOFTWARE_ENCODING_DATAPATH ||
+           session_type_ ==
+               SessionType::
+                   LE_AUDIO_BROADCAST_HARDWARE_OFFLOAD_ENCODING_DATAPATH;
   }
 
   bool GetPreferredDataIntervalUs(size_t* interval_us) const override;

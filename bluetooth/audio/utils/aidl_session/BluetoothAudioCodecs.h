@@ -18,6 +18,8 @@
 
 #include <aidl/android/hardware/bluetooth/audio/CodecCapabilities.h>
 #include <aidl/android/hardware/bluetooth/audio/CodecConfiguration.h>
+#include <aidl/android/hardware/bluetooth/audio/CodecInfo.h>
+#include <aidl/android/hardware/bluetooth/audio/IBluetoothAudioProvider.h>
 #include <aidl/android/hardware/bluetooth/audio/LeAudioCodecCapabilitiesSetting.h>
 #include <aidl/android/hardware/bluetooth/audio/LeAudioConfiguration.h>
 #include <aidl/android/hardware/bluetooth/audio/OpusConfiguration.h>
@@ -33,6 +35,9 @@ namespace hardware {
 namespace bluetooth {
 namespace audio {
 
+using LeAudioAseConfigurationSetting =
+    IBluetoothAudioProvider::LeAudioAseConfigurationSetting;
+
 class BluetoothAudioCodecs {
  public:
   static std::vector<PcmCapabilities> GetSoftwarePcmCapabilities();
@@ -44,11 +49,13 @@ class BluetoothAudioCodecs {
   static bool IsOffloadCodecConfigurationValid(
       const SessionType& session_type, const CodecConfiguration& codec_config);
 
-  static bool IsOffloadLeAudioConfigurationValid(
-      const SessionType& session_type, const LeAudioConfiguration&);
-
   static std::vector<LeAudioCodecCapabilitiesSetting>
   GetLeAudioOffloadCodecCapabilities(const SessionType& session_type);
+  static std::vector<CodecInfo> GetLeAudioOffloadCodecInfo(
+      const SessionType& session_type);
+
+  static std::vector<LeAudioAseConfigurationSetting>
+  GetLeAudioAseConfigurationSettings();
 
  private:
   template <typename T>

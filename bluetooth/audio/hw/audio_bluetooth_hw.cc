@@ -17,7 +17,6 @@
 #define LOG_TAG "BTAudioHw"
 
 #include <android-base/logging.h>
-#include <errno.h>
 #include <hardware/hardware.h>
 #include <log/log.h>
 #include <malloc.h>
@@ -39,7 +38,8 @@ static int adev_set_parameters(struct audio_hw_device* dev,
 
   LOG(VERBOSE) << __func__ << ": ParamsMap=[" << GetAudioParamString(params)
                << "]";
-  if (params.find("A2dpSuspended") == params.end()) {
+  if (params.find("A2dpSuspended") == params.end() &&
+      params.find("LeAudioSuspended") == params.end()) {
     return -ENOSYS;
   }
 
@@ -99,6 +99,67 @@ static int adev_get_mic_mute(const struct audio_hw_device* dev, bool* state) {
   return -ENOSYS;
 }
 
+static int adev_create_audio_patch(struct audio_hw_device* device,
+                                   unsigned int num_sources,
+                                   const struct audio_port_config* sources,
+                                   unsigned int num_sinks,
+                                   const struct audio_port_config* sinks,
+                                   audio_patch_handle_t* handle) {
+  if (device == nullptr || sources == nullptr || sinks == nullptr ||
+      handle == nullptr || num_sources != 1 || num_sinks == 0 ||
+      num_sinks > AUDIO_PATCH_PORTS_MAX) {
+    return -EINVAL;
+  }
+  if (sources[0].type == AUDIO_PORT_TYPE_DEVICE) {
+    if (num_sinks != 1 || sinks[0].type != AUDIO_PORT_TYPE_MIX) {
+      return -EINVAL;
+    }
+  } else if (sources[0].type == AUDIO_PORT_TYPE_MIX) {
+    for (unsigned int i = 0; i < num_sinks; i++) {
+      if (sinks[i].type != AUDIO_PORT_TYPE_DEVICE) {
+        return -EINVAL;
+      }
+    }
+  } else {
+    return -EINVAL;
+  }
+
+  auto* bluetooth_device = reinterpret_cast<BluetoothAudioDevice*>(device);
+  std::lock_guard<std::mutex> guard(bluetooth_device->mutex_);
+  if (*handle == AUDIO_PATCH_HANDLE_NONE) {
+    *handle = ++bluetooth_device->next_unique_id;
+  }
+
+  LOG(INFO) << __func__ << ": device=" << std::hex << sinks[0].ext.device.type
+            << " handle: " << *handle;
+  return 0;
+}
+
+static int adev_release_audio_patch(struct audio_hw_device* device,
+                                    audio_patch_handle_t patch_handle) {
+  if (device == nullptr) {
+    return -EINVAL;
+  }
+  LOG(INFO) << __func__ << ": patch_handle=" << patch_handle;
+  return 0;
+}
+
+static int adev_get_audio_port_v7(struct audio_hw_device* device,
+                                  struct audio_port_v7* port) {
+  if (device == nullptr || port == nullptr) {
+    return -EINVAL;
+  }
+  return -ENOSYS;
+}
+
+static int adev_get_audio_port(struct audio_hw_device* device,
+                               struct audio_port* port) {
+  if (device == nullptr || port == nullptr) {
+    return -EINVAL;
+  }
+  return -ENOSYS;
+}
+
 static int adev_dump(const audio_hw_device_t* device, int fd) { return 0; }
 
 static int adev_close(hw_device_t* device) {
@@ -117,7 +178,7 @@ static int adev_open(const hw_module_t* module, const char* name,
   if (!adev) return -ENOMEM;
 
   adev->common.tag = HARDWARE_DEVICE_TAG;
-  adev->common.version = AUDIO_DEVICE_API_VERSION_2_0;
+  adev->common.version = AUDIO_DEVICE_API_VERSION_3_2;
   adev->common.module = (struct hw_module_t*)module;
   adev->common.close = adev_close;
 
@@ -138,6 +199,10 @@ static int adev_open(const hw_module_t* module, const char* name,
   adev->dump = adev_dump;
   adev->set_master_mute = adev_set_master_mute;
   adev->get_master_mute = adev_get_master_mute;
+  adev->create_audio_patch = adev_create_audio_patch;
+  adev->release_audio_patch = adev_release_audio_patch;
+  adev->get_audio_port_v7 = adev_get_audio_port_v7;
+  adev->get_audio_port = adev_get_audio_port;
 
   *device = &adev->common;
   return 0;

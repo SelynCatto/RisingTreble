@@ -81,6 +81,7 @@ struct BluetoothAudioDevice {
   std::mutex mutex_;
   std::list<BluetoothStreamOut*> opened_stream_outs_ =
       std::list<BluetoothStreamOut*>(0);
+  uint32_t next_unique_id = 1;
 };
 
 struct BluetoothStreamIn {

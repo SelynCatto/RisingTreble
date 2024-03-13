@@ -57,6 +57,10 @@ std::string GetAudioParamString(
   return sout.str();
 }
 
+size_t FrameCount(uint64_t microseconds, uint32_t sample_rate) {
+  return (microseconds * sample_rate) / 1000000;
+}
+
 }  // namespace utils
 }  // namespace audio
 }  // namespace bluetooth

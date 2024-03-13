@@ -9,8 +9,11 @@ cc_library_shared {
         "utils.cc",
     ],
     header_libs: ["libhardware_headers"],
+    defaults: [
+        "latest_android_hardware_audio_common_ndk_shared",
+        "latest_android_hardware_bluetooth_audio_ndk_shared",
+    ],
     shared_libs: [
-        "android.hardware.bluetooth.audio-V3-ndk",
         "libbluetooth_audio_session_aidl_system",
         "libaudioutils",
         "libbase",

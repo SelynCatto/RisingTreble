@@ -42,6 +42,7 @@ std::unordered_map<std::string, std::string> ParseAudioParams(
 std::string GetAudioParamString(
     std::unordered_map<std::string, std::string>& params_map);
 
+size_t FrameCount(uint64_t microseconds, uint32_t sample_rate);
 }  // namespace utils
 }  // namespace audio
 }  // namespace bluetooth

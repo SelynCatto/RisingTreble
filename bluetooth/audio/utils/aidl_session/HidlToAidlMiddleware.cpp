@@ -467,6 +467,8 @@ inline AudioConfig_2_1 to_hidl_audio_config_2_1(
       hidl_audio_config.codecConfig(to_hidl_codec_config_2_0(
           audio_config.get<AudioConfiguration::a2dpConfig>()));
       break;
+    case AudioConfiguration::a2dp:
+      break;
     case AudioConfiguration::leAudioConfig:
       hidl_audio_config.leAudioCodecConfig(to_hidl_leaudio_config_2_1(
           audio_config.get<AudioConfiguration::leAudioConfig>()));
@@ -475,6 +477,8 @@ inline AudioConfig_2_1 to_hidl_audio_config_2_1(
       hidl_audio_config.leAudioCodecConfig(to_hidl_leaudio_broadcast_config_2_1(
           audio_config.get<AudioConfiguration::leAudioBroadcastConfig>()));
       break;
+    default:
+      LOG(FATAL) << __func__ << ": unexpected AudioConfiguration";
   }
   return hidl_audio_config;
 }
@@ -583,7 +587,7 @@ bool HidlToAidlMiddleware_2_0::GetPresentationPosition(
     *total_bytes_readed = presentation_position.transmittedOctets;
   if (data_position)
     *data_position = {
-        .tv_sec = static_cast<__kernel_old_time_t>(
+        .tv_sec = static_cast<long>(
             presentation_position.transmittedOctetsTimestamp.tvSec),
         .tv_nsec = static_cast<long>(
             presentation_position.transmittedOctetsTimestamp.tvNSec)};
