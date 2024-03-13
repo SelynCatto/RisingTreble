@@ -1197,3 +1197,8 @@ fi
 # Override media volume steps
 resetprop_phh ro.config.media_vol_steps 25
 resetprop_phh ro.config.media_vol_default 8
+
+# Force disable Sunlight Reading Mode to prevent weird color issues
+if getprop ro.vendor.build.fingerprint | grep -iq -e xiaomi/renoir; then
+    resetprop_phh ro.vendor.sre.enable false
+fi
