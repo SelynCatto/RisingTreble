@@ -1203,7 +1203,7 @@ if getprop ro.vendor.build.fingerprint | grep -iq -e xiaomi/renoir; then
     resetprop_phh ro.vendor.sre.enable false
 fi
 
-# Fix low brightness issue on Infinix Note 30
-if getprop ro.vendor.build.fingerprint | grep -iq -e infinix/x6833b; then
+# Fix low brightness issue on Infinix Note 30 and TECNO POVA 4 non-Pro
+if getprop ro.vendor.build.fingerprint | grep -iq -e infinix/x6833b -e tecno/lg7n -e tecno/lh7n; then
   setprop ro.vendor.transsion.backlight_hal.optimization 1
 fi
