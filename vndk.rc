@@ -100,6 +100,9 @@ on property:persist.sys.phh.ims.floss=true
 on property:persist.sys.phh.enable_sf_gl_backpressure=*
    setprop debug.sf.enable_gl_backpressure ${persist.sys.phh.enable_sf_gl_backpressure}
 
+on property:persist.sys.phh.dynamic_fps=*
+   setprop ro.surface_flinger.use_content_detection_for_refresh_rate ${persist.sys.phh.dynamic_fps}
+
 # Set watchdog timer to 30 seconds and pet it every 10 seconds to get a 20 second margin
 service watchdogd-gsi /system/bin/watchdogd 10 20
     class core
