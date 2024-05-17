@@ -230,6 +230,8 @@ if [ "$1" == "persist.sys.phh.backlight.scale" ];then
             setprop persist.sys.qcom-brightness "$(cat /sys/class/leds/lcd-backlight/max_brightness)"
         elif [ -f /sys/class/backlight/panel0-backlight/max_brightness ];then
             setprop persist.sys.qcom-brightness "$(cat /sys/class/backlight/panel0-backlight/max_brightness)"
+        elif [ -f /sys/class/backlight/sprd_backlight/max_brightness ];then
+            setprop persist.sys.qcom-brightness "$(cat /sys/class/backlight/sprd_backlight/max_brightness)"
         fi
     else
         setprop persist.sys.qcom-brightness -1
