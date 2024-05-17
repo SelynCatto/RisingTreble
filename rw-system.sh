@@ -1207,3 +1207,8 @@ fi
 if getprop ro.vendor.build.fingerprint | grep -iq -e infinix/x6833b -e tecno/lg7n -e tecno/lh7n; then
   setprop ro.vendor.transsion.backlight_hal.optimization 1
 fi
+
+# brightness fix for platform ums512 And ums9230
+if getprop ro.board.platform |grep -iq -e ums512 -e ums9230;then
+    setprop persist.sys.qcom-brightness "$(cat /sys/class/backlight/sprd_backlight/max_brightness)"
+fi
