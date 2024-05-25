@@ -1,0 +1,42 @@
+From 409f248f1b86699f25d7d513fdf6e2f0ffe7e76a Mon Sep 17 00:00:00 2001
+From: naz664 <nazimnavas145@gmail.com>
+Date: Sat, 3 Sep 2022 14:59:05 +0000
+Subject: [PATCH] Disable-generated-kernel-headers.patch
+
+---
+ build/soong/Android.bp | 12 ------------
+ 1 file changed, 12 deletions(-)
+
+diff --git a/build/soong/Android.bp b/build/soong/Android.bp
+index d0e9d9e..025f632 100644
+--- a/build/soong/Android.bp
++++ b/build/soong/Android.bp
+@@ -20,9 +20,6 @@ bootstrap_go_package {
+ lineage_generator {
+     name: "generated_kernel_includes",
+ 
+-    // The headers make command
+-    cmd: "$(PATH_OVERRIDE_SOONG) $(KERNEL_MAKE_CMD) $(KERNEL_MAKE_FLAGS) -C $(TARGET_KERNEL_SOURCE) O=$(KERNEL_BUILD_OUT_PREFIX)$(genDir) ARCH=$(KERNEL_ARCH) $(KERNEL_CROSS_COMPILE) headers_install && vendor/lineage/tools/clean_headers.sh $(KERNEL_BUILD_OUT_PREFIX)$(genDir)",
+-
+     // Directories that can be imported by a cc_* module generated_headers property
+     export_include_dirs: [
+         "usr/audio/include/uapi",
+@@ -31,15 +28,6 @@ lineage_generator {
+         "usr/include/audio/include/uapi",
+         "usr/techpack/audio/include",
+     ],
+-
+-    // Sources for dependency tracking
+-    dep_root: "$(TARGET_KERNEL_SOURCE)",
+-    dep_files: [
+-        "Makefile",
+-        "include/**/*",
+-        "arch/$(KERNEL_ARCH)/include/**/*",
+-        "techpack/audio/include/**/*",
+-    ],
+ }
+ 
+ cc_defaults {
+-- 
+2.34.1
+

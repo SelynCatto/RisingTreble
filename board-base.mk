@@ -6,7 +6,11 @@ BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/phh/treble/bluetooth/inclu
 TARGET_EXFAT_DRIVER := exfat
 DEVICE_FRAMEWORK_MANIFEST_FILE := device/phh/treble/framework_manifest.xml
 
+# Share blocks
+BOARD_EXT4_SHARE_DUP_BLOCKS := true
+
 BOARD_ROOT_EXTRA_FOLDERS += bt_firmware sec_storage efs persist
 BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true
+BUILD_BROKEN_DUP_RULES := true
 
 BOARD_ROOT_EXTRA_SYMLINKS := $(filter-out $(BOARD_ROOT_EXTRA_SYMLINKS),/mnt/vendor/persist:/persist)
