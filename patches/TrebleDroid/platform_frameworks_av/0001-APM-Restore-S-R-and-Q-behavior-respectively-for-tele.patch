@@ -1,7 +1,7 @@
-From 11d3723a8e59eb1a0ea72643583c56fea6799868 Mon Sep 17 00:00:00 2001
+From c28c369df14cdc3f5dd47258e6e3d2dcc0fa7af3 Mon Sep 17 00:00:00 2001
 From: Peter Cai <peter@typeblog.net>
 Date: Thu, 18 Aug 2022 15:44:46 -0400
-Subject: [PATCH 01/24] APM: Restore S, R and Q behavior respectively for
+Subject: [PATCH 01/23] APM: Restore S, R and Q behavior respectively for
  telephony audio
 
 This conditionally reverts part of b2e5cb (T), 51c9cc (S) and afd4ce (R)
@@ -36,10 +36,10 @@ Change-Id: I56d36d2aef4319935cb88a3e4771b23c6d5b2145
  2 files changed, 147 insertions(+), 62 deletions(-)
 
 diff --git a/services/audiopolicy/managerdefault/AudioPolicyManager.cpp b/services/audiopolicy/managerdefault/AudioPolicyManager.cpp
-index 135548fb9c..fc99bdbd78 100644
+index 6ecd2604d4..8bbea4b957 100644
 --- a/services/audiopolicy/managerdefault/AudioPolicyManager.cpp
 +++ b/services/audiopolicy/managerdefault/AudioPolicyManager.cpp
-@@ -692,6 +692,17 @@ status_t AudioPolicyManager::updateCallRoutingInternal(
+@@ -693,6 +693,17 @@ status_t AudioPolicyManager::updateCallRoutingInternal(
      ALOGV("%s device rxDevice %s txDevice %s", __func__,
            rxDevices.itemAt(0)->toString().c_str(), txSourceDevice->toString().c_str());
  
@@ -57,7 +57,7 @@ index 135548fb9c..fc99bdbd78 100644
      auto telephonyRxModule =
          mHwModules.getModuleForDeviceType(AUDIO_DEVICE_IN_TELEPHONY_RX, AUDIO_FORMAT_DEFAULT);
      auto telephonyTxModule =
-@@ -714,9 +725,20 @@ status_t AudioPolicyManager::updateCallRoutingInternal(
+@@ -715,9 +726,20 @@ status_t AudioPolicyManager::updateCallRoutingInternal(
              ALOGE("%s() no telephony Tx and/or RX device", __func__);
              return INVALID_OPERATION;
          }
@@ -81,7 +81,7 @@ index 135548fb9c..fc99bdbd78 100644
      } else {
          // If the RX device is on the primary HW module, then use legacy routing method for
          // voice calls via setOutputDevice() on primary output.
-@@ -737,7 +759,14 @@ status_t AudioPolicyManager::updateCallRoutingInternal(
+@@ -738,7 +760,14 @@ status_t AudioPolicyManager::updateCallRoutingInternal(
          }
          muteWaitMs = setOutputDevices(__func__, mPrimaryOutput, rxDevices, true, delayMs);
      } else { // create RX path audio patch
@@ -97,7 +97,7 @@ index 135548fb9c..fc99bdbd78 100644
          // If the TX device is on the primary HW module but RX device is
          // on other HW module, SinkMetaData of telephony input should handle it
          // assuming the device uses audio HAL V5.0 and above
-@@ -752,7 +781,12 @@ status_t AudioPolicyManager::updateCallRoutingInternal(
+@@ -753,7 +782,12 @@ status_t AudioPolicyManager::updateCallRoutingInternal(
                  closeActiveClients(activeDesc);
              }
          }
@@ -111,7 +111,7 @@ index 135548fb9c..fc99bdbd78 100644
      }
      if (waitMs != nullptr) {
          *waitMs = muteWaitMs;
-@@ -760,6 +794,36 @@ status_t AudioPolicyManager::updateCallRoutingInternal(
+@@ -761,6 +795,36 @@ status_t AudioPolicyManager::updateCallRoutingInternal(
      return NO_ERROR;
  }
  
@@ -148,7 +148,7 @@ index 135548fb9c..fc99bdbd78 100644
  bool AudioPolicyManager::isDeviceOfModule(
          const sp<DeviceDescriptor>& devDesc, const char *moduleId) const {
      sp<HwModule> module = mHwModules.getModuleFromName(moduleId);
-@@ -5087,83 +5151,101 @@ status_t AudioPolicyManager::createAudioPatchInternal(const struct audio_patch *
+@@ -5109,83 +5173,101 @@ status_t AudioPolicyManager::createAudioPatchInternal(const struct audio_patch *
                  // in config XML to reach the sink so that is can be declared as available.
                  audio_io_handle_t output = AUDIO_IO_HANDLE_NONE;
                  sp<SwAudioOutputDescriptor> outputDesc;

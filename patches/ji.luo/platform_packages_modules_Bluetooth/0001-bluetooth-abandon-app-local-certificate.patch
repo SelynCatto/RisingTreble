@@ -1,0 +1,251 @@
+From a75c185d9e639d80658ac17720a606d7c5136e82 Mon Sep 17 00:00:00 2001
+From: Ji Luo <ji.luo@nxp.com>
+Date: Thu, 25 Aug 2022 14:52:09 +0800
+Subject: [PATCH] bluetooth: abandon app local certificate
+
+bluetooth app is signed with local certificate ':com.android.bluetooth.certificate'
+which is located at 'android/app/certs/*' and is aligned with the certificate in
+'build/target/product/security'. However, some vendors may specify their own
+certificates path by 'PRODUCT_DEFAULT_DEV_CERTIFICATE' and generate their own
+release bluetooth certificates, bluetooth app will fail to load in such scenario
+because of the certificate doesn't match and cause selinux error:
+  ...
+  E SELinux : seapp_context_lookup:  No match for app with uid 1002, seinfo default, name com.android.bluetooth
+  E SELinux : selinux_android_setcontext:  Error setting context for app with uid 1002, seinfo default:privapp:targetSdkVersion=33:complete: Success
+  ...
+
+This CL use the certificate name 'bluetooth' so the app can be signed with the
+same certificate which is located at 'PRODUCT_DEFAULT_DEV_CERTIFICATE/*'.
+
+Test: Bluetooth on&off.
+
+Signed-off-by: Ji Luo <ji.luo@nxp.com>
+Change-Id: I286aed5a3b895272f5ffc077ecd1d76351e02af7
+---
+ android/BluetoothLegacyMigration/Android.bp   |   2 +-
+ android/app/Android.bp                        |   7 +--
+ android/app/certs/com.android.bluetooth.pk8   | Bin 2374 -> 0 bytes
+ .../app/certs/com.android.bluetooth.x509.pem  |  36 ------------
+ android/app/certs/key.pem                     |  52 ------------------
+ framework/tests/stress/Android.bp             |   2 +-
+ service/tests/Android.bp                      |   1 +
+ 7 files changed, 4 insertions(+), 96 deletions(-)
+ delete mode 100644 android/app/certs/com.android.bluetooth.pk8
+ delete mode 100644 android/app/certs/com.android.bluetooth.x509.pem
+ delete mode 100644 android/app/certs/key.pem
+
+diff --git a/android/BluetoothLegacyMigration/Android.bp b/android/BluetoothLegacyMigration/Android.bp
+index b755fa0895..786264efd5 100644
+--- a/android/BluetoothLegacyMigration/Android.bp
++++ b/android/BluetoothLegacyMigration/Android.bp
+@@ -9,6 +9,6 @@ android_app {
+     srcs: [ "BluetoothLegacyMigration.kt" ],
+ 
+     // Must match Bluetooth.apk certificate because of sharedUserId
+-    certificate: ":com.android.bluetooth.certificate",
++    certificate: "bluetooth",
+     platform_apis: true,
+ }
+diff --git a/android/app/Android.bp b/android/app/Android.bp
+index 07c57d7ef1..1d43cfefa3 100644
+--- a/android/app/Android.bp
++++ b/android/app/Android.bp
+@@ -220,7 +220,7 @@ android_app {
+         "--custom-package",
+         "com.android.bluetooth",
+     ],
+-    certificate: ":com.android.bluetooth.certificate",
++    certificate: "bluetooth",
+ 
+     jarjar_rules: ":bluetooth-jarjar-rules",
+     privapp_allowlist: ":privapp_allowlist_com.android.bluetooth.xml",
+@@ -367,8 +367,3 @@ genrule {
+         " --minApiLevel 34",
+     out: ["com/android/bluetooth/BtRestrictedStatsLog.java"],
+ }
+-
+-android_app_certificate {
+-    name: "com.android.bluetooth.certificate",
+-    certificate: "certs/com.android.bluetooth",
+-}
+diff --git a/android/app/certs/com.android.bluetooth.pk8 b/android/app/certs/com.android.bluetooth.pk8
+deleted file mode 100644
+index c6ea434b5dc82479c82f41b27a147c041be4b96a..0000000000000000000000000000000000000000
+GIT binary patch
+literal 0
+HcmV?d00001
+
+literal 2374
+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
+
+diff --git a/android/app/certs/com.android.bluetooth.x509.pem b/android/app/certs/com.android.bluetooth.x509.pem
+deleted file mode 100644
+index 396d7c9f43..0000000000
+--- a/android/app/certs/com.android.bluetooth.x509.pem
++++ /dev/null
+@@ -1,36 +0,0 @@
+------BEGIN CERTIFICATE-----
+-MIIGOzCCBCOgAwIBAgIUEiZapaWZVSter06CJMf2kHi8PIswDQYJKoZIhvcNAQEL
+-BQAwgasxCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApDYWxpZm9ybmlhMRYwFAYDVQQH
+-DA1Nb3VudGFpbiBWaWV3MRAwDgYDVQQKDAdBbmRyb2lkMRAwDgYDVQQLDAdBbmRy
+-b2lkMScwJQYDVQQDDB5jb20uYW5kcm9pZC5ibHVldG9vdGguc2VydmljZXMxIjAg
+-BgkqhkiG9w0BCQEWE2FuZHJvaWRAYW5kcm9pZC5jb20wIBcNMjIwMzE1MDAzNjAz
+-WhgPNDc2MDAyMDkwMDM2MDNaMIGrMQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2Fs
+-aWZvcm5pYTEWMBQGA1UEBwwNTW91bnRhaW4gVmlldzEQMA4GA1UECgwHQW5kcm9p
+-ZDEQMA4GA1UECwwHQW5kcm9pZDEnMCUGA1UEAwweY29tLmFuZHJvaWQuYmx1ZXRv
+-b3RoLnNlcnZpY2VzMSIwIAYJKoZIhvcNAQkBFhNhbmRyb2lkQGFuZHJvaWQuY29t
+-MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAsVlq9pozUREGlb8u8Y0A
+-fYwPs5OuavNx/EsX03aTjmAXUfSOMAewqzUXDIRjw8UQvOW63utaZ0go9osDPzNf
+-VEftmGxW/AUC+HWGaLDQfCYO3ficPPOS7xpEhGZERNbnhvh5qX0NBt6mJygsfpOm
+-RPThbi6Ig2Brxh1eqVYqRkTjhNFKD6gCd1PdMmUSF88xEYaZWvTkET89Zh38lLza
+-2x/wfNZmCSAVurNw1Kf9NQfYsaGHwMsjrvTyhG93TTYXzRBFzAO2WlBiw6R0tQr8
+-ZW5XCM9Yo6AS0KXiU0ZWwOXxhGdr38rNd7j9nZtpFwWmN1kgeb/vpEfq0Ylua9By
+-uURnfJZu2K4TbFamuyjihItra2ZKOtFNPDeuggKMCkuZz6WU8FCoMEpnq5P2agxN
+-OGAa7ynXdNzek98N3TGX8qtfEgCv6vyuM0gakJ6D9nM43nsCm1LkB/JA0CacWyRz
+-ljaLL1C4S43azEOYyOOb94ITnkZCQGtH33kxzamyPLIZ37VF4+v6yTXySLBzOnhe
+-Os5uBIDohVJuI838bLhZf8e5mIrnjiKwsmExXiQvgidbwvZKCz9n8YT4iUhWPx4F
+-W+GPcivZsvsECcnJ2QURK1zhir5QuLS7ZbAth4kiEUxJ6ujF5jftE+L/ClK2LiY0
+-2IXWRCct8J1hfJZZx8lm3PUCAwEAAaNTMFEwHQYDVR0OBBYEFO5CgtQzKbTEd/Q9
+-rxK14a9BBwFZMB8GA1UdIwQYMBaAFO5CgtQzKbTEd/Q9rxK14a9BBwFZMA8GA1Ud
+-EwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggIBAGrGS1zmaoARVq7qhoY+xzSc
+-1I/Tzf6vG6aHBC+CcIoSM2oqr6TGH+ADHAY6jhu/qzv1ij3gtoInAkBtkWvYsCIV
+-eISPj8Qomcd8EIeW77p+ArKzS4HY5m1c/O4D/5rkl6c0exFq4Pdw9V8xyM98QtLd
+-oj4xzzXUTPOIwkROHkj8otcML28m/MC0l/4b+flHnPqKFuLBjhxi9b/ZfwaXfjkx
+-TcXpM3nPH8zN7kaJpS1fPW1IJyxJYvT022uK+afpezTmyS/50aOncUGjDJRw8CcO
+-B88O8lpizDD3tD7P6jVOpRRJS4SnkVErbIn1xdWER6ubhnnycH7UmDVIx+vNd/t6
+-YDa377au8Za+LnbDPfV1+Og+RaJSEIjJgfYyqnjBxGdRGN21VbqJdRzo/eO4ZFd2
+-mGVtMosVr0jw4O8r60o9oMMWBTbFpxOI929QdcV+X1Lz8A8BZz0faXfZ2Z9usctu
+-W2FtZge3tsJ07z7kuhNdbnm2yQVfd0FqiJsapUjlhgcdFVoDWPuqOfWAoG31ble6
+-eiNnxfjiCckPWyciIE6lw97nvavGjlUacH5qVG86hOWU7xyBgeQ0PH4e+Nxr50yU
+-A0GMxni1gefZFG8qEPdNRuDT1QdqDGh/8Ea11GEUMXdAxk0UzqyAtLDr6MbwK6lV
+-mqmeueFdogdjvQ3mXe94
+------END CERTIFICATE-----
+diff --git a/android/app/certs/key.pem b/android/app/certs/key.pem
+deleted file mode 100644
+index 5f7d1bc525..0000000000
+--- a/android/app/certs/key.pem
++++ /dev/null
+@@ -1,52 +0,0 @@
+------BEGIN PRIVATE KEY-----
+-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
+-MGM6YXLym/x1WxR7mOQvAwpSJ093EA==
+------END PRIVATE KEY-----
+diff --git a/framework/tests/stress/Android.bp b/framework/tests/stress/Android.bp
+index 7742c57952..16f8135102 100644
+--- a/framework/tests/stress/Android.bp
++++ b/framework/tests/stress/Android.bp
+@@ -28,5 +28,5 @@ android_test {
+     test_suites: [
+         "general-tests",
+     ],
+-    certificate: ":com.android.bluetooth.certificate",
++    certificate: "bluetooth",
+ }
+diff --git a/service/tests/Android.bp b/service/tests/Android.bp
+index 96c89961e5..f40e60d8a6 100644
+--- a/service/tests/Android.bp
++++ b/service/tests/Android.bp
+@@ -52,6 +52,7 @@ android_test {
+         "libdexmakerjvmtiagent",
+         "libstaticjvmtiagent",
+     ],
++    certificate: "bluetooth",
+ 
+     min_sdk_version: "Tiramisu",
+ 
+-- 
+2.34.1
+

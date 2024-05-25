@@ -1,4 +1,4 @@
-From 5da69cbf1c4bde5aba341cb02d801c43a008e396 Mon Sep 17 00:00:00 2001
+From 8fa74099424b1ed4681d86a2216a155090b66a33 Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Tue, 7 May 2024 22:44:25 +0000
 Subject: [PATCH] Dont abort if the DnsHelper failed to init on BPF-less kernel
