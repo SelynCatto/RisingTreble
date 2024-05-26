@@ -1,14 +1,14 @@
-From 8e0be039110e6009da65bbc3fb6bcd34237e9cbf Mon Sep 17 00:00:00 2001
+From 5e4fcbf39679c02578fa1c7247ac2b06710ce280 Mon Sep 17 00:00:00 2001
 From: ItsLynix <lynixthewolf@gmail.com>
 Date: Fri, 24 May 2024 09:54:35 +0200
-Subject: [PATCH] vendor: silence dublicate adb properties
+Subject: [PATCH 1/2] vendor: silence dublicate adb properties
 
 ---
  config/common.mk | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/config/common.mk b/config/common.mk
-index 5d6e00e..2001216 100644
+index 5d6e00ec..20012163 100644
 --- a/config/common.mk
 +++ b/config/common.mk
 @@ -32,7 +32,7 @@ ifeq ($(TARGET_BUILD_VARIANT),eng)

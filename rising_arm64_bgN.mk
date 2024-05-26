@@ -26,7 +26,7 @@ PRODUCT_NO_CAMERA := false
 # Rising GMS
 WITH_GMS := true
 #Uncomment for core build
-TARGET_CORE_GMS := true
+#TARGET_CORE_GMS := true
 #Uncomment for core+ build
 #TARGET_CORE_GMS_EXTRAS := true
 TARGET_DEFAULT_PIXEL_LAUNCHER := false

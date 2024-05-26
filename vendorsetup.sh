@@ -53,6 +53,10 @@ git clone https://github.com/phhusson/vendor_lptools vendor/lptools -b master --
 rm -rf packages/apps/QcRilAm
 git clone https://github.com/AndyCGYan/android_packages_apps_QcRilAm packages/apps/QcRilAm -b master --depth 1
 
+echo "Getting keys, if this sync fails you need to change the script to call a valid keys repo with your own signing keys."
+rm -rf vendor/rising/keys
+git clone https://github.com/ItsLynix/RisingKeys vendor/rising/keys -b master --depth 1
+
 #rm -rf treble_app
 #git clone https://github.com/TrebleDroid/treble_app treble_app -b master --depth=1
 
@@ -63,6 +67,9 @@ git reset --hard 204f1bad00aaf480ba33233f7b8c2ddaa03155dd
 cd ../../..
 
 apply "TrebleDroid"
+cd vendor/lineage
+git am --abort
+cd ../../
 apply "naz664"
 apply "UniversalX"
 apply "ji.luo"

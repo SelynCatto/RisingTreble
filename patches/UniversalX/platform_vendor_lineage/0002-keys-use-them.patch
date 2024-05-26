@@ -1,0 +1,24 @@
+From 6ada4cdc09335cbad47c72942dcc2ee08930e7f8 Mon Sep 17 00:00:00 2001
+From: ItsLynix <lynixthewolf@gmail.com>
+Date: Mon, 27 May 2024 00:24:46 +0200
+Subject: [PATCH 2/2] keys: use them
+
+---
+ config/common.mk | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/config/common.mk b/config/common.mk
+index 20012163..1ef14995 100644
+--- a/config/common.mk
++++ b/config/common.mk
+@@ -3,6 +3,7 @@ $(call inherit-product-if-exists, vendor/extra/product.mk)
+ $(call inherit-product-if-exists, vendor/lineage/config/crdroid.mk)
+ $(call inherit-product-if-exists, vendor/addons/config.mk)
+ $(call inherit-product-if-exists, vendor/pixel-framework/config.mk)
++$(call inherit-product-if-exists, vendor/rising/keys/keys.mk)
+ include vendor/rising/config/rising.mk
+ 
+ PRODUCT_BRAND ?= risingOS
+-- 
+2.34.1
+
