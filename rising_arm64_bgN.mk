@@ -15,7 +15,8 @@ PRODUCT_SYSTEM_BRAND := google
 PRODUCT_MODEL := TrebleDroid with GApps
 
 # Rising stuff
-RISING_MAINTAINER="UniversalX"
+RISING_MAINTAINER=UniversalX
+RISING_BUILDTYPE := OFFICIAL
 PRODUCT_BUILD_PROP_OVERRIDES += \
     RISING_MAINTAINER="UniversalX"
 
@@ -25,7 +26,7 @@ PRODUCT_NO_CAMERA := false
 # Rising GMS
 WITH_GMS := true
 #Uncomment for core build
-#TARGET_CORE_GMS := true
+TARGET_CORE_GMS := true
 #Uncomment for core+ build
 #TARGET_CORE_GMS_EXTRAS := true
 TARGET_DEFAULT_PIXEL_LAUNCHER := false
