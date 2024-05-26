@@ -1,15 +1,15 @@
-From c4834801bbbc52882dc15951b0e1773873fd69d5 Mon Sep 17 00:00:00 2001
+From 97861839684f13699b87191620370a1d5978d064 Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Wed, 15 May 2024 05:56:59 -0400
-Subject: [PATCH 10/10] More bpf errors ignore -- there are some 4.14 without
- the bpf jit file
+Subject: [PATCH 5/5] More bpf errors ignore -- there are some 4.14 without the
+ bpf jit file
 
 ---
  netbpfload/NetBpfLoad.cpp | 9 +++------
  1 file changed, 3 insertions(+), 6 deletions(-)
 
 diff --git a/netbpfload/NetBpfLoad.cpp b/netbpfload/NetBpfLoad.cpp
-index e9c1b10651..3853916df2 100644
+index 98207e3f75..4721e1ef4b 100644
 --- a/netbpfload/NetBpfLoad.cpp
 +++ b/netbpfload/NetBpfLoad.cpp
 @@ -218,8 +218,7 @@ int main(int argc, char** argv, char * const envp[]) {
