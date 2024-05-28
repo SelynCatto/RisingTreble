@@ -1,0 +1,21 @@
+{
+  "version": "v3.1",
+  "date": "build-time",
+  "variants": [
+    {
+      "name": "rising_arm64_bgN",
+      "size": "<size>",
+      "url": "<direct-url-to-image>"
+    },
+    {
+      "name": "rising_arm64_bcgN",
+      "size": "<size>",
+      "url": "<direct-url-to-image>"
+    },
+    {
+      "name": "rising_arm64_bvN",
+      "size": "<size>",
+      "url": "<direct-url-to-image>"
+    }
+  ]
+}
