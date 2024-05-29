@@ -1,21 +1,21 @@
 {
   "version": "v3.1",
-  "date": "build-time",
+  "date": "1716929119",
   "variants": [
     {
       "name": "rising_arm64_bgN",
-      "size": "<size>",
-      "url": "<direct-url-to-image>"
+      "size": "1579250664",
+      "url": "https://sourceforge.net/projects/risingos-official/files/3.x/GAPPS/GSI/RisingOS-3.1-RELEASE-GAPPS-OFFICIAL-arm64_bgN.img.xz"
     },
     {
       "name": "rising_arm64_bcgN",
-      "size": "<size>",
-      "url": "<direct-url-to-image>"
+      "size": "1237138096",
+      "url": "https://sourceforge.net/projects/risingos-official/files/3.x/CORE/GSI/RisingOS-3.1-RELEASE-CORE-OFFICIAL-arm64_bcgN.img.xz"
     },
     {
       "name": "rising_arm64_bvN",
-      "size": "<size>",
-      "url": "<direct-url-to-image>"
+      "size": "1000123052",
+      "url": "https://sourceforge.net/projects/risingos-official/files/3.x/VANILLA/GSI/RisingOS-3.1-RELEASE-VANILLA_AOSP-OFFICIAL-arm64_bvN.img.xz"
     }
   ]
 }
