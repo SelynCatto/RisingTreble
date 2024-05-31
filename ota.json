@@ -5,17 +5,17 @@
     {
       "name": "rising_arm64_bgN",
       "size": "1579231924",
-      "url": "https://sourceforge.net/projects/risingos-official/files/3.x/GAPPS/GSI/RisingOS-3.1-20240531-RELEASE-GAPPS-OFFICIAL-arm64_bgN.img.xz"
+      "url": "https://github.com/ItsLynix/RisingTreble/releases/download/3.1-ota/RisingOS-3.1-20240531-RELEASE-GAPPS-OFFICIAL-arm64_bgN.img.xz"
     },
     {
       "name": "rising_arm64_bcgN",
       "size": "1237146068",
-      "url": "https://sourceforge.net/projects/risingos-official/files/3.x/CORE/GSI/RisingOS-3.1-20240531-RELEASE-CORE-OFFICIAL-arm64_bcgN.img.xz"
+      "url": "https://github.com/ItsLynix/RisingTreble/releases/download/3.1-ota/RisingOS-3.1-20240531-RELEASE-CORE-OFFICIAL-arm64_bcgN.img.xz"
     },
     {
       "name": "rising_arm64_bvN",
       "size": "1000145320",
-      "url": "https://sourceforge.net/projects/risingos-official/files/3.x/VANILLA/GSI/RisingOS-3.1-20240531-RELEASE-VANILLA_AOSP-OFFICIAL-arm64_bvN.img.xz"
+      "url": "https://github.com/ItsLynix/RisingTreble/releases/download/3.1-ota/RisingOS-3.1-20240531-RELEASE-VANILLA_AOSP-OFFICIAL-arm64_bvN.img.xz"
     }
   ]
 }
