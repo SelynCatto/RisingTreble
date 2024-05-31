@@ -869,22 +869,6 @@ if [ -c /dev/dsm ];then
     fi
 fi
 
-has_hostapd=false
-for i in odm oem vendor product;do
-    if grep -qF android.hardware.wifi.hostapd /$i/etc/vintf/manifest.xml;then
-        has_hostapd=true
-    fi
-    for j in /$i/etc/vintf/manifest/*;do
-        if grep -qF android.hardware.wifi.hostapd $j;then
-            has_hostapd=true
-        fi
-    done
-done
-
-if [ "$has_hostapd" = false ];then
-    setprop persist.sys.phh.system_hostapd true
-fi
-
 #Weird /odm/phone.prop Huawei stuff
 HW_PRODID="$(sed -nE 's/.*productid=([0-9xa-f]*).*/\1/p' /proc/cmdline)"
 [ -z "$HW_PRODID" ] && HW_PRODID="0x$(od -A none -t x1 /sys/firmware/devicetree/base/hisi,modem_id | sed s/' '//g)"
