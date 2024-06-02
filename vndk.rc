@@ -108,7 +108,3 @@ service watchdogd-gsi /system/bin/watchdogd 10 20
     class core
     oneshot
     seclabel u:r:watchdogd:s0
-
-# Fix for non-AMOLED Transsion devices where brightness would be dimmer than usual
-on property:ro.vendor.transsion.backlight_12bit=*
-    setprop ro.vendor.transsion.backlight_hal.optimization ${ro.vendor.transsion.backlight_12bit}

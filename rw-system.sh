@@ -1194,3 +1194,8 @@ fi
 if getprop ro.board.platform |grep -iq -e ums512 -e ums9230;then
     setprop persist.sys.qcom-brightness "$(cat /sys/class/backlight/sprd_backlight/max_brightness)"
 fi
+
+# Fix for non-AMOLED Transsion devices where brightness would be dimmer than usual
+if [ -n "$(getprop ro.vendor.transsion.backlight_12bit)" ];then
+    setprop ro.vendor.transsion.backlight_hal.optimization $(getprop ro.vendor.transsion.backlight_12bit)
+fi
