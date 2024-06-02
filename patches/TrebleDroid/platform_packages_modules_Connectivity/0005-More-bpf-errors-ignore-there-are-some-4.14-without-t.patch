@@ -1,7 +1,7 @@
-From 97861839684f13699b87191620370a1d5978d064 Mon Sep 17 00:00:00 2001
+From 4e714b8f5dca03d9d128bf2b965f35dbe6be926d Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Wed, 15 May 2024 05:56:59 -0400
-Subject: [PATCH 5/5] More bpf errors ignore -- there are some 4.14 without the
+Subject: [PATCH 5/6] More bpf errors ignore -- there are some 4.14 without the
  bpf jit file
 
 ---

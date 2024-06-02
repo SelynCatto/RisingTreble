@@ -57,8 +57,8 @@ echo "Getting keys, if this sync fails you need to change the script to call a v
 rm -rf vendor/rising/keys
 git clone https://github.com/ItsLynix/RisingKeys vendor/rising/keys -b master --depth 1
 
-#rm -rf treble_app
-#git clone https://github.com/TrebleDroid/treble_app treble_app -b master --depth=1
+rm -rf treble_app
+git clone https://github.com/TrebleDroid/treble_app treble_app -b master --depth=1
 
 rm -rf prebuilts/vndk/v28
 git clone https://android.googlesource.com/platform/prebuilts/vndk/v28 ./prebuilts/vndk/v28
@@ -74,3 +74,9 @@ apply "naz664"
 apply "UniversalX"
 apply "ji.luo"
 
+
+# Build treble app after applying patch
+cd treble_app
+bash build.sh release
+cp -v TrebleApp.apk ../vendor/hardware_overlay/TrebleApp/app.apk
+cd ..

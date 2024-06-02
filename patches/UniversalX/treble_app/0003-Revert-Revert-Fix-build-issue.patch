@@ -1,0 +1,26 @@
+From 21a2fe58711cd202fed61f7050eb14c666d1f7a4 Mon Sep 17 00:00:00 2001
+From: ItsLynix <lynixthewolf@gmail.com>
+Date: Tue, 28 May 2024 21:24:55 +0200
+Subject: [PATCH 3/3] Revert "Revert "Fix build issue""
+
+This reverts commit 05c7d227c4b1574879ecf2a14dadc7fc2c2e9f4a.
+---
+ app/src/main/java/me/phh/treble/app/Hostapd.kt | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/app/src/main/java/me/phh/treble/app/Hostapd.kt b/app/src/main/java/me/phh/treble/app/Hostapd.kt
+index c982f17..61db189 100644
+--- a/app/src/main/java/me/phh/treble/app/Hostapd.kt
++++ b/app/src/main/java/me/phh/treble/app/Hostapd.kt
+@@ -14,6 +14,8 @@ import javax.crypto.spec.PBEKeySpec
+ 
+ class Hostapd: EntryStartup {
+     val hostapdSvc = object: android.hardware.wifi.hostapd.V1_0.IHostapd.Stub() {
++        override fun debug(p0: android.os.NativeHandle, p1: ArrayList<String>) {
++        }
+         override fun terminate() {
+             Log.d("PHH", "Terminating access point")
+             SystemProperties.set("ctl.stop", "hostapd")
+-- 
+2.34.1
+
