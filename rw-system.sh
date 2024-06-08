@@ -622,7 +622,8 @@ if getprop ro.vendor.build.fingerprint | grep -iq -e Redmi/lancelot -e Redmi/gal
     setprop debug.sf.early.app.duration 20000000
     setprop debug.sf.earlyGl.sf.duration 27600000
     setprop debug.sf.earlyGl.app.duration 20000000
-    setprop debug.sf.hwc.min.duration 17000000
+    setprop debug.sf.hwc.min.duration 23000000
+    setprop debug.sf.predict_hwc_composition_strategy 0
 fi
 
 if getprop ro.vendor.build.fingerprint | grep -iq -e Redmi/rosemary \
