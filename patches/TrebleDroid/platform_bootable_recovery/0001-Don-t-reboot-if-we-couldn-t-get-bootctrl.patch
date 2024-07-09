@@ -1,4 +1,4 @@
-From a608f590cb62dfea92def7960d55f7668f031efb Mon Sep 17 00:00:00 2001
+From 23e1e8a75a4ade423538e4dcbb0d4e8d736f2d83 Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Thu, 12 Sep 2019 20:31:07 +0200
 Subject: [PATCH] Don't reboot if we couldn't get bootctrl

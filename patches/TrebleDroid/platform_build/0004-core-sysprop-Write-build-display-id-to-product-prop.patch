@@ -1,4 +1,4 @@
-From 5284f7c412e5ff6e7db2c011638ab3a72ee4bfa7 Mon Sep 17 00:00:00 2001
+From 672172fccf45bf4310b55c6f0b1dcace7cc370a4 Mon Sep 17 00:00:00 2001
 From: Adithya R <gh0strider.2k18.reborn@gmail.com>
 Date: Thu, 18 Aug 2022 21:29:34 +0530
 Subject: [PATCH 4/4] core: sysprop: Write build display id to product prop
@@ -11,7 +11,7 @@ Change-Id: I1c2de43ba7c3544710897ad9127d320dd02293fe
  1 file changed, 3 insertions(+)
 
 diff --git a/core/sysprop.mk b/core/sysprop.mk
-index 16160d0207..9b83bdf6c2 100644
+index 09de03579e..40b5e8c910 100644
 --- a/core/sysprop.mk
 +++ b/core/sysprop.mk
 @@ -77,6 +77,9 @@ define generate-common-build-props

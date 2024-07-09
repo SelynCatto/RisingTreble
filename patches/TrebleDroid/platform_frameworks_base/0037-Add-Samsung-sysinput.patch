@@ -1,17 +1,17 @@
-From 6af55a1131522c617e5983f3072caac3fd258f82 Mon Sep 17 00:00:00 2001
+From 807f1ec608acf2bb1aa2eb1ed839be7cec9f1c6c Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Mon, 29 Jan 2024 17:07:07 -0500
-Subject: [PATCH 37/44] Add Samsung sysinput
+Subject: [PATCH 37/40] Add Samsung sysinput
 
 ---
  services/core/Android.bp | 1 +
  1 file changed, 1 insertion(+)
 
 diff --git a/services/core/Android.bp b/services/core/Android.bp
-index 95c57ea30625..a4f99d69b0f6 100644
+index af42ddde6886..72fc3f8fe81a 100644
 --- a/services/core/Android.bp
 +++ b/services/core/Android.bp
-@@ -217,6 +217,7 @@ java_library_static {
+@@ -268,6 +268,7 @@ java_library_static {
          "vendor.aospa.biometrics.face",
  
          //AIDL

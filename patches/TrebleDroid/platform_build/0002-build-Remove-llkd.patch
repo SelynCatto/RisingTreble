@@ -1,4 +1,4 @@
-From d29fcb499ac4624e1905a4571f074a6f97072b57 Mon Sep 17 00:00:00 2001
+From 672ecacf00d2a49c6d92b7e065bef266f5838c3c Mon Sep 17 00:00:00 2001
 From: Andy CrossGate Yan <GeForce8800Ultra@gmail.com>
 Date: Thu, 14 Oct 2021 12:20:52 +0000
 Subject: [PATCH 2/4] build: Remove llkd
@@ -11,10 +11,10 @@ Change-Id: I29384a820a0c07b29d3f11d7039bed40eeaee926
  1 file changed, 1 deletion(-)
 
 diff --git a/target/product/base_system.mk b/target/product/base_system.mk
-index c341ad79af..75e2703ccb 100644
+index 0eded97d8c..53badb7440 100644
 --- a/target/product/base_system.mk
 +++ b/target/product/base_system.mk
-@@ -205,7 +205,6 @@ PRODUCT_PACKAGES += \
+@@ -210,7 +210,6 @@ PRODUCT_PACKAGES += \
      libvulkan \
      libwilhelm \
      linker \

@@ -1,7 +1,7 @@
-From b776574cc511e535b24acf0cbdc644bf5b87abff Mon Sep 17 00:00:00 2001
+From 134d807a11d6a798204b2e84be25559e5f592e25 Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Tue, 23 Mar 2021 19:43:26 +0100
-Subject: [PATCH 18/44] Catch broken mainBuiltInDisplayCutoutRectApproximation
+Subject: [PATCH 18/40] Catch broken mainBuiltInDisplayCutoutRectApproximation
 
 Some devices (Redmi Note 9T) have:
 mainBuiltInDisplayCutoutRectApproximation = @android:mainBuiltInDisplayCutout
@@ -14,14 +14,14 @@ Fix it by catching it, and parsing mainBuiltInDisplayCutout instead
 
 Change-Id: I03b6e78bac2cc38f3a623c8add801405ad6ba7ba
 ---
- core/java/android/view/DisplayCutout.java | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ core/java/android/view/DisplayCutout.java | 19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
 diff --git a/core/java/android/view/DisplayCutout.java b/core/java/android/view/DisplayCutout.java
-index 712d1d67c942..5d929873f18d 100644
+index db665a92ec5c..09fa81796a5b 100644
 --- a/core/java/android/view/DisplayCutout.java
 +++ b/core/java/android/view/DisplayCutout.java
-@@ -1056,11 +1056,19 @@ public final class DisplayCutout {
+@@ -1188,12 +1188,19 @@ public final class DisplayCutout {
      public static DisplayCutout fromResourcesRectApproximation(Resources res,
              String displayUniqueId, int physicalDisplayWidth, int physicalDisplayHeight,
              int displayWidth, int displayHeight) {
@@ -29,7 +29,8 @@ index 712d1d67c942..5d929873f18d 100644
 -                getDisplayCutoutApproximationRect(res, displayUniqueId), physicalDisplayWidth,
 -                physicalDisplayHeight, displayWidth, displayHeight,
 -                DENSITY_DEVICE_STABLE / (float) DENSITY_DEFAULT,
--                getWaterfallInsets(res, displayUniqueId)).second;
+-                getWaterfallInsets(res, displayUniqueId),
+-                getDisplayCutoutSideOverrides(res, displayUniqueId)).second;
 +        try {
 +            return pathAndDisplayCutoutFromSpec(getDisplayCutoutPath(res, displayUniqueId),
 +                    getDisplayCutoutApproximationRect(res, displayUniqueId), physicalDisplayWidth,

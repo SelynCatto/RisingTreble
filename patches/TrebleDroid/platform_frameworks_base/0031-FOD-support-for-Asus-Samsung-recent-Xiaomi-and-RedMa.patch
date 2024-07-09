@@ -1,7 +1,7 @@
-From 777d8bb8db76f56fe5a7c77bf36e52d6b3fe2475 Mon Sep 17 00:00:00 2001
+From 8e3b57320a46aa1b0bc6fdeef6c26e8d35f2936d Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Sun, 18 Dec 2022 18:20:40 -0500
-Subject: [PATCH 31/44] FOD support for Asus, Samsung recent Xiaomi and
+Subject: [PATCH 31/40] FOD support for Asus, Samsung recent Xiaomi and
  RedMagic 8 devices
 
 Thanks Asus for providing a free device to make this support
@@ -23,22 +23,24 @@ Also override UDFPS infos on AIDL fingerprints -- needed for FP on S24
 Try catch the Xiaomi calls
 Typo in observing Samsung brightness
 ---
- packages/SystemUI/Android.bp                  |   4 +
- .../systemui/biometrics/UdfpsController.java  |  75 ++++-
- .../biometrics/UdfpsControllerOverlay.kt      |   7 +-
- .../android/systemui/biometrics/UdfpsView.kt  | 243 +++++++++++++-
- .../shared/DeviceEntryUdfpsRefactor.kt        |   2 +-
- services/core/Android.bp                      |   9 +-
- .../server/biometrics/AuthService.java        | 296 +++++++++++++++++-
- .../fingerprint/FingerprintService.java       |   3 +-
- .../fingerprint/aidl/FingerprintProvider.java |  26 +-
- 9 files changed, 637 insertions(+), 28 deletions(-)
+ packages/SystemUI/Android.bp                  |    4 +
+ .../systemui/biometrics/UdfpsController.java  |   76 +-
+ .../biometrics/UdfpsControllerOverlay.kt      |    7 +-
+ .../android/systemui/biometrics/UdfpsView.kt  |  243 +++-
+ .../shared/DeviceEntryUdfpsRefactor.kt        |    2 +-
+ services/core/Android.bp                      |    9 +-
+ .../server/biometrics/AuthService.java        |  296 ++++-
+ .../server/biometrics/AuthService.java.save   | 1146 +++++++++++++++++
+ .../fingerprint/FingerprintService.java       |    3 +-
+ .../fingerprint/aidl/FingerprintProvider.java |   26 +-
+ 10 files changed, 1784 insertions(+), 28 deletions(-)
+ create mode 100644 services/core/java/com/android/server/biometrics/AuthService.java.save
 
 diff --git a/packages/SystemUI/Android.bp b/packages/SystemUI/Android.bp
-index 835fd2926333..ae66c4c2df3e 100644
+index da2513e6b2bc..74a35b1edbea 100644
 --- a/packages/SystemUI/Android.bp
 +++ b/packages/SystemUI/Android.bp
-@@ -205,6 +205,10 @@ android_library {
+@@ -159,6 +159,10 @@ android_library {
          "LowLightDreamLib",
          "motion_tool_lib",
          "notification_flags_lib",
@@ -46,14 +48,14 @@ index 835fd2926333..ae66c4c2df3e 100644
 +        "vendor.xiaomi.hw.touchfeature-V1.0-java",
 +        "vendor.xiaomi.hardware.fingerprintextension-V1.0-java",
 +        "vendor.nubia.ifaa-V1.0-java",
-         "vendor.lineage.powershare-V1.0-java",
-         "FadingEdgeLayoutLib",
-     ],
+         "PlatformComposeCore",
+         "PlatformComposeSceneTransitionLayout",
+         "androidx.compose.runtime_runtime",
 diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
-index 78e632746976..b889d2709da5 100644
+index 91fecbca388c..5b169bc844a4 100644
 --- a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
 +++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
-@@ -44,12 +44,14 @@ import android.hardware.fingerprint.FingerprintSensorProperties;
+@@ -46,12 +46,14 @@ import android.hardware.fingerprint.FingerprintSensorProperties;
  import android.hardware.fingerprint.FingerprintSensorPropertiesInternal;
  import android.hardware.fingerprint.IUdfpsOverlayController;
  import android.hardware.fingerprint.IUdfpsOverlayControllerCallback;
@@ -68,7 +70,7 @@ index 78e632746976..b889d2709da5 100644
  import android.os.UserHandle;
  import android.os.VibrationAttributes;
  import android.os.VibrationEffect;
-@@ -121,9 +123,13 @@ import java.util.ArrayList;
+@@ -125,8 +127,12 @@ import java.util.ArrayList;
  import java.util.HashSet;
  import java.util.Set;
  import java.util.concurrent.Executor;
@@ -77,12 +79,11 @@ index 78e632746976..b889d2709da5 100644
 +import java.io.IOException;
  
  import javax.inject.Inject;
- import javax.inject.Provider;
 +import vendor.nubia.ifaa.V1_0.IIfaa;
  
+ import kotlinx.coroutines.CoroutineScope;
  import kotlinx.coroutines.ExperimentalCoroutinesApi;
- 
-@@ -188,6 +194,8 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+@@ -193,6 +199,8 @@ public class UdfpsController implements DozeReceiver, Dumpable {
      @NonNull private final AuthController mAuthController;
      @NonNull private final SelectedUserInteractor mSelectedUserInteractor;
      @NonNull private final FpsUnlockTracker mFpsUnlockTracker;
@@ -91,10 +92,10 @@ index 78e632746976..b889d2709da5 100644
      private final boolean mIgnoreRefreshRate;
      private final KeyguardTransitionInteractor mKeyguardTransitionInteractor;
  
-@@ -279,6 +287,46 @@ public class UdfpsController implements DozeReceiver, Dumpable {
-             mScreenOn = false;
+@@ -281,6 +289,47 @@ public class UdfpsController implements DozeReceiver, Dumpable {
          }
      };
+ 
 +    // Nubia 6 series fingerprint control command
 +    // cmd = 13 -> finger down
 +    // cmd = 14 -> after UI ready
@@ -135,20 +136,21 @@ index 78e632746976..b889d2709da5 100644
 +            return null;
 +        }
 +    };
- 
++
      private ConfigurationController.ConfigurationListener mConfigurationListener =
              new ConfigurationController.ConfigurationListener() {
-@@ -736,7 +784,8 @@ public class UdfpsController implements DozeReceiver, Dumpable {
-             @NonNull KeyguardTransitionInteractor keyguardTransitionInteractor,
-             Lazy<DeviceEntryUdfpsTouchOverlayViewModel> deviceEntryUdfpsTouchOverlayViewModel,
-             Lazy<DefaultUdfpsTouchOverlayViewModel> defaultUdfpsTouchOverlayViewModel,
+                 @Override
+@@ -748,7 +797,8 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+             @NonNull UdfpsOverlayInteractor udfpsOverlayInteractor,
+             @NonNull PowerInteractor powerInteractor,
+             @Application CoroutineScope scope,
 -            @NonNull AuthController authController) {
 +            @NonNull AuthController authController,
 +            @NonNull ColorDisplayManager colorDisplayManager) {
          mContext = context;
          mExecution = execution;
          mVibrator = vibrator;
-@@ -776,6 +825,7 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+@@ -792,6 +842,7 @@ public class UdfpsController implements DozeReceiver, Dumpable {
          mFpsUnlockTracker = fpsUnlockTracker;
          mFpsUnlockTracker.startTracking();
          mKeyguardTransitionInteractor = keyguardTransitionInteractor;
@@ -156,7 +158,7 @@ index 78e632746976..b889d2709da5 100644
  
          mTouchProcessor = singlePointerTouchProcessor;
          mSessionTracker = sessionTracker;
-@@ -945,7 +995,10 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+@@ -959,7 +1010,10 @@ public class UdfpsController implements DozeReceiver, Dumpable {
  
      private void showUdfpsOverlay(@NonNull UdfpsControllerOverlay overlay) {
          mExecution.assertIsMainThread();
@@ -168,7 +170,7 @@ index 78e632746976..b889d2709da5 100644
          mOverlay = overlay;
          final int requestReason = overlay.getRequestReason();
  
-@@ -1250,6 +1303,10 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+@@ -1255,6 +1309,10 @@ public class UdfpsController implements DozeReceiver, Dumpable {
              mSmartPixelsFlag = true;
          }
          if (isOptical()) {
@@ -179,7 +181,7 @@ index 78e632746976..b889d2709da5 100644
              mLatencyTracker.onActionStart(ACTION_UDFPS_ILLUMINATE);
          }
          if (getBiometricSessionType() == SESSION_KEYGUARD) {
-@@ -1281,10 +1338,16 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+@@ -1286,10 +1344,16 @@ public class UdfpsController implements DozeReceiver, Dumpable {
                  }
              }
          }
@@ -196,7 +198,7 @@ index 78e632746976..b889d2709da5 100644
          if (mUdfpsAnimation != null) {
              mUdfpsAnimation.show();
          }
-@@ -1329,8 +1392,16 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+@@ -1334,8 +1398,16 @@ public class UdfpsController implements DozeReceiver, Dumpable {
          }
  
          if (mOnFingerDown) {
@@ -214,10 +216,10 @@ index 78e632746976..b889d2709da5 100644
                  cb.onFingerUp();
              }
 diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsControllerOverlay.kt b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsControllerOverlay.kt
-index 2b55d553994b..9a6d9b6c8faa 100644
+index 6dfb6437cc79..f6549e3fb572 100644
 --- a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsControllerOverlay.kt
 +++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsControllerOverlay.kt
-@@ -149,7 +149,9 @@ class UdfpsControllerOverlay @JvmOverloads constructor(
+@@ -176,7 +176,9 @@ class UdfpsControllerOverlay @JvmOverloads constructor(
          gravity = android.view.Gravity.TOP or android.view.Gravity.LEFT
          layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
          flags = (Utils.FINGERPRINT_OVERLAY_LAYOUT_PARAM_FLAGS or
@@ -228,9 +230,9 @@ index 2b55d553994b..9a6d9b6c8faa 100644
          privateFlags = WindowManager.LayoutParams.PRIVATE_FLAG_TRUSTED_OVERLAY
          // Avoid announcing window title.
          accessibilityTitle = " "
-@@ -258,6 +260,9 @@ class UdfpsControllerOverlay @JvmOverloads constructor(
-                         windowManager.addView(frame, frameLayoutParams)
-                         windowManager.addView(this, coreLayoutParams.updateDimensions(animation))
+@@ -286,6 +288,9 @@ class UdfpsControllerOverlay @JvmOverloads constructor(
+ 
+                         addViewNowOrLater(this, animation)
                          sensorRect = sensorBounds
 +                        dimUpdate = {
 +                            windowManager.updateViewLayout(this, coreLayoutParams.updateDimensions(animation).apply { dimAmount = it })
@@ -553,10 +555,10 @@ index b5d5803ca6fb..68f74f3ed6f3 100644
      /**
       * Called to ensure code is only run when the flag is enabled. This protects users from the
 diff --git a/services/core/Android.bp b/services/core/Android.bp
-index a7d828d42447..b07293d9aeb2 100644
+index 9cd1377d1705..2deaa518b9c3 100644
 --- a/services/core/Android.bp
 +++ b/services/core/Android.bp
-@@ -205,7 +205,14 @@ java_library_static {
+@@ -252,7 +252,14 @@ java_library_static {
          "com_android_wm_shell_flags_lib",
          "com.android.server.utils_aconfig-java",
          "service-jobscheduler-deviceidle.flags-aconfig-java",
@@ -569,14 +571,14 @@ index a7d828d42447..b07293d9aeb2 100644
 +        "vendor.oplus.hardware.biometrics.fingerprint-V2.1-java",
 +        "vendor.oppo.hardware.biometrics.fingerprint-V2.1-java",
 +        "vendor.xiaomi.hardware.fingerprintextension-V1.0-java",
-         "vendor.aac.hardware.richtap.vibrator",
-         "vendor.aospa.biometrics.face",
-     ],
+         "policy_flags_lib",
+         "net_flags_lib",
+         "stats_flags_lib",
 diff --git a/services/core/java/com/android/server/biometrics/AuthService.java b/services/core/java/com/android/server/biometrics/AuthService.java
-index 5279073cd71a..f6f0fea8e3e7 100644
+index eef5e79e4ed5..b1f06482dc19 100644
 --- a/services/core/java/com/android/server/biometrics/AuthService.java
 +++ b/services/core/java/com/android/server/biometrics/AuthService.java
-@@ -80,6 +80,25 @@ import java.util.ArrayList;
+@@ -85,6 +85,25 @@ import java.util.ArrayList;
  import java.util.Arrays;
  import java.util.List;
  
@@ -602,7 +604,7 @@ index 5279073cd71a..f6f0fea8e3e7 100644
  /**
   * System service that provides an interface for authenticating with biometrics and
   * PIN/pattern/password to BiometricPrompt and lock screen.
-@@ -98,6 +117,11 @@ public class AuthService extends SystemService {
+@@ -103,6 +122,11 @@ public class AuthService extends SystemService {
      @VisibleForTesting
      final IAuthService.Stub mImpl;
  
@@ -614,7 +616,7 @@ index 5279073cd71a..f6f0fea8e3e7 100644
      /**
       * Class for injecting dependencies into AuthService.
       * TODO(b/141025588): Replace with a dependency injection framework (e.g. Guice, Dagger).
-@@ -704,11 +728,11 @@ public class AuthService extends SystemService {
+@@ -765,11 +789,11 @@ public class AuthService extends SystemService {
              final int firstApiLevel = SystemProperties.getInt(SYSPROP_FIRST_API_LEVEL, 0);
              final int apiLevel = SystemProperties.getInt(SYSPROP_API_LEVEL, firstApiLevel);
              String[] configStrings = mInjector.getConfiguration(getContext());
@@ -628,8 +630,8 @@ index 5279073cd71a..f6f0fea8e3e7 100644
                  configStrings = generateRSdkCompatibleConfiguration();
              }
              hidlConfigs = new SensorConfig[configStrings.length];
-@@ -723,6 +747,102 @@ public class AuthService extends SystemService {
-         registerAuthenticators(hidlConfigs);
+@@ -788,6 +812,102 @@ public class AuthService extends SystemService {
+         }
  
          mInjector.publishBinderService(this, mImpl);
 +        try {
@@ -730,8 +732,8 @@ index 5279073cd71a..f6f0fea8e3e7 100644
 +        }
      }
  
-     /**
-@@ -846,18 +966,123 @@ public class AuthService extends SystemService {
+     private void registerAuthenticators() {
+@@ -1039,18 +1159,123 @@ public class AuthService extends SystemService {
                  ? modality : (modality & ~BiometricAuthenticator.TYPE_CREDENTIAL);
      }
  
@@ -857,7 +859,7 @@ index 5279073cd71a..f6f0fea8e3e7 100644
  
          // config_is_powerbutton_fps indicates whether device has a power button fingerprint sensor.
          final boolean isPowerbuttonFps = getContext().getResources().getBoolean(
-@@ -925,4 +1150,67 @@ public class AuthService extends SystemService {
+@@ -1118,4 +1343,67 @@ public class AuthService extends SystemService {
                  componentInfo, resetLockoutRequiresHardwareAuthToken,
                  resetLockoutRequiresChallenge);
      }
@@ -925,11 +927,1163 @@ index 5279073cd71a..f6f0fea8e3e7 100644
 +        }
 +    }
  }
+diff --git a/services/core/java/com/android/server/biometrics/AuthService.java.save b/services/core/java/com/android/server/biometrics/AuthService.java.save
+new file mode 100644
+index 000000000000..d0cff2cc0dc3
+--- /dev/null
++++ b/services/core/java/com/android/server/biometrics/AuthService.java.save
+@@ -0,0 +1,1146 @@
++/*
++ * Copyright (C) 2019 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package com.android.server.biometrics;
++
++
++// TODO(b/141025588): Create separate internal and external permissions for AuthService.
++// TODO(b/141025588): Get rid of the USE_FINGERPRINT permission.
++
++import static android.Manifest.permission.SET_BIOMETRIC_DIALOG_LOGO;
++import static android.Manifest.permission.TEST_BIOMETRIC;
++import static android.Manifest.permission.USE_BIOMETRIC;
++import static android.Manifest.permission.USE_BIOMETRIC_INTERNAL;
++import static android.Manifest.permission.USE_FINGERPRINT;
++import static android.hardware.biometrics.BiometricAuthenticator.TYPE_FACE;
++import static android.hardware.biometrics.BiometricAuthenticator.TYPE_FINGERPRINT;
++import static android.hardware.biometrics.BiometricAuthenticator.TYPE_IRIS;
++import static android.hardware.biometrics.BiometricAuthenticator.TYPE_NONE;
++import static android.hardware.biometrics.BiometricConstants.BIOMETRIC_ERROR_CANCELED;
++import static android.hardware.biometrics.BiometricManager.Authenticators;
++
++import static com.android.server.biometrics.sensors.fingerprint.aidl.FingerprintProvider.getWorkaroundSensorProps;
++
++import android.annotation.NonNull;
++import android.annotation.Nullable;
++import android.app.AppOpsManager;
++import android.content.Context;
++import android.content.pm.PackageManager;
++import android.hardware.biometrics.AuthenticationStateListener;
++import android.hardware.biometrics.BiometricAuthenticator;
++import android.hardware.biometrics.BiometricManager;
++import android.hardware.biometrics.ComponentInfoInternal;
++import android.hardware.biometrics.Flags;
++import android.hardware.biometrics.IAuthService;
++import android.hardware.biometrics.IBiometricEnabledOnKeyguardCallback;
++import android.hardware.biometrics.IBiometricService;
++import android.hardware.biometrics.IBiometricServiceReceiver;
++import android.hardware.biometrics.IInvalidationCallback;
++import android.hardware.biometrics.ITestSession;
++import android.hardware.biometrics.ITestSessionCallback;
++import android.hardware.biometrics.PromptInfo;
++import android.hardware.biometrics.SensorLocationInternal;
++import android.hardware.biometrics.SensorPropertiesInternal;
++import android.hardware.biometrics.face.IFace;
++import android.hardware.biometrics.fingerprint.IFingerprint;
++import android.hardware.face.FaceSensorConfigurations;
++import android.hardware.face.FaceSensorProperties;
++import android.hardware.face.FaceSensorPropertiesInternal;
++import android.hardware.face.IFaceService;
++import android.hardware.fingerprint.FingerprintSensorConfigurations;
++import android.hardware.fingerprint.FingerprintSensorProperties;
++import android.hardware.fingerprint.FingerprintSensorPropertiesInternal;
++import android.hardware.fingerprint.IFingerprintService;
++import android.hardware.iris.IIrisService;
++import android.os.Binder;
++import android.os.Build;
++import android.os.IBinder;
++import android.os.RemoteException;
++import android.os.ServiceManager;
++import android.os.SystemProperties;
++import android.os.UserHandle;
++import android.provider.Settings;
++import android.util.Slog;
++
++import com.android.internal.R;
++import com.android.internal.annotations.VisibleForTesting;
++import com.android.internal.util.ArrayUtils;
++import com.android.server.SystemService;
++import com.android.server.companion.virtual.VirtualDeviceManagerInternal;
++
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.List;
++
++import android.hardware.display.DisplayManager;
++
++import android.graphics.Point;
++import android.text.TextUtils;
++import android.util.DisplayMetrics;
++import java.io.BufferedReader;
++import java.io.File;
++import java.io.FileReader;
++import java.io.PrintWriter;
++
++import android.os.FileObserver;
++import android.os.Build;
++
++import vendor.samsung.hardware.biometrics.fingerprint.V3_0.ISehBiometricsFingerprint;
++import vendor.goodix.hardware.biometrics.fingerprint.V2_1.IGoodixFingerprintDaemon;
++import vendor.samsung.hardware.sysinput.V1_0.ISehSysInputDev;
++
++import vendor.xiaomi.hardware.fingerprintextension.V1_0.IXiaomiFingerprint;
++
++/**
++ * System service that provides an interface for authenticating with biometrics and
++ * PIN/pattern/password to BiometricPrompt and lock screen.
++ */
++public class AuthService extends SystemService {
++    private static final String TAG = "AuthService";
++    private static final String SETTING_HIDL_DISABLED =
++            "com.android.server.biometrics.AuthService.hidlDisabled";
++    private static final int DEFAULT_HIDL_DISABLED = 0;
++    private static final String SYSPROP_FIRST_API_LEVEL = "ro.board.first_api_level";
++    private static final String SYSPROP_API_LEVEL = "ro.board.api_level";
++
++    private final Injector mInjector;
++
++    private IBiometricService mBiometricService;
++    @VisibleForTesting
++    final IAuthService.Stub mImpl;
++
++    private FileObserver fodFileObserver = null;
++    private ISehBiometricsFingerprint mSamsungFingerprint = null;
++
++    private IXiaomiFingerprint mXiaomiFingerprint = null;
++
++    /**
++     * Class for injecting dependencies into AuthService.
++     * TODO(b/141025588): Replace with a dependency injection framework (e.g. Guice, Dagger).
++     */
++    @VisibleForTesting
++    public static class Injector {
++
++        /**
++         * Allows to mock BiometricService for testing.
++         */
++        @VisibleForTesting
++        public IBiometricService getBiometricService() {
++            return IBiometricService.Stub.asInterface(
++                    ServiceManager.getService(Context.BIOMETRIC_SERVICE));
++        }
++
++        /**
++         * Allows to stub publishBinderService(...) for testing.
++         */
++        @VisibleForTesting
++        public void publishBinderService(AuthService service, IAuthService.Stub impl) {
++            service.publishBinderService(Context.AUTH_SERVICE, impl);
++        }
++
++        /**
++         * Allows to test with various device sensor configurations.
++         */
++        @VisibleForTesting
++        public String[] getConfiguration(Context context) {
++            return context.getResources().getStringArray(R.array.config_biometric_sensors);
++        }
++
++        /**
++         * Allows to test with various device sensor configurations.
++         */
++        @VisibleForTesting
++        public String[] getFingerprintConfiguration(Context context) {
++            return getConfiguration(context);
++        }
++
++        /**
++         * Allows to test with various device sensor configurations.
++         */
++        @VisibleForTesting
++        public String[] getFaceConfiguration(Context context) {
++            return getConfiguration(context);
++        }
++
++        /**
++         * Allows to test with various device sensor configurations.
++         */
++        @VisibleForTesting
++        public String[] getIrisConfiguration(Context context) {
++            return getConfiguration(context);
++        }
++
++        /**
++         * Allows us to mock FingerprintService for testing
++         */
++        @VisibleForTesting
++        public IFingerprintService getFingerprintService() {
++            return IFingerprintService.Stub.asInterface(
++                    ServiceManager.getService(Context.FINGERPRINT_SERVICE));
++        }
++
++        /**
++         * Allows us to mock FaceService for testing
++         */
++        @VisibleForTesting
++        public IFaceService getFaceService() {
++            return IFaceService.Stub.asInterface(
++                    ServiceManager.getService(Context.FACE_SERVICE));
++        }
++
++        /**
++         * Allows us to mock IrisService for testing
++         */
++        @VisibleForTesting
++        public IIrisService getIrisService() {
++            return IIrisService.Stub.asInterface(
++                    ServiceManager.getService(Context.IRIS_SERVICE));
++        }
++
++        @VisibleForTesting
++        public AppOpsManager getAppOps(Context context) {
++            return context.getSystemService(AppOpsManager.class);
++        }
++
++        /**
++         * Allows to ignore HIDL HALs on debug builds based on a secure setting.
++         */
++        @VisibleForTesting
++        public boolean isHidlDisabled(Context context) {
++            if (Build.IS_ENG || Build.IS_USERDEBUG) {
++                return Settings.Secure.getIntForUser(context.getContentResolver(),
++                        SETTING_HIDL_DISABLED, DEFAULT_HIDL_DISABLED, UserHandle.USER_CURRENT) == 1;
++            }
++            return false;
++        }
++
++        /**
++         * Allows to test with various fingerprint aidl instances.
++         */
++        @VisibleForTesting
++        public String[] getFingerprintAidlInstances() {
++            return ServiceManager.getDeclaredInstances(IFingerprint.DESCRIPTOR);
++        }
++
++        /**
++         * Allows to test with various face aidl instances.
++         */
++        @VisibleForTesting
++        public String[] getFaceAidlInstances() {
++            return ServiceManager.getDeclaredInstances(IFace.DESCRIPTOR);
++        }
++
++        /**
++         * Allows to test with handlers.
++         */
++        public BiometricHandlerProvider getBiometricHandlerProvider() {
++            return BiometricHandlerProvider.getInstance();
++        }
++    }
++
++    private final class AuthServiceImpl extends IAuthService.Stub {
++        @android.annotation.EnforcePermission(android.Manifest.permission.TEST_BIOMETRIC)
++        @Override
++        public ITestSession createTestSession(int sensorId, @NonNull ITestSessionCallback callback,
++                @NonNull String opPackageName) throws RemoteException {
++
++            super.createTestSession_enforcePermission();
++
++            final long identity = Binder.clearCallingIdentity();
++            try {
++                return mInjector.getBiometricService()
++                        .createTestSession(sensorId, callback, opPackageName);
++            } finally {
++                Binder.restoreCallingIdentity(identity);
++            }
++        }
++
++        @android.annotation.EnforcePermission(android.Manifest.permission.TEST_BIOMETRIC)
++        @Override
++        public List<SensorPropertiesInternal> getSensorProperties(String opPackageName)
++                throws RemoteException {
++
++            super.getSensorProperties_enforcePermission();
++
++            final long identity = Binder.clearCallingIdentity();
++            try {
++                // Get the result from BiometricService, since it is the source of truth for all
++                // biometric sensors.
++                return mInjector.getBiometricService().getSensorProperties(opPackageName);
++            } finally {
++                Binder.restoreCallingIdentity(identity);
++            }
++        }
++
++        @android.annotation.EnforcePermission(android.Manifest.permission.TEST_BIOMETRIC)
++        @Override
++        public String getUiPackage() {
++
++            super.getUiPackage_enforcePermission();
++
++            return getContext().getResources()
++                    .getString(R.string.config_biometric_prompt_ui_package);
++        }
++
++        @Override
++        public long authenticate(IBinder token, long sessionId, int userId,
++                IBiometricServiceReceiver receiver, String opPackageName, PromptInfo promptInfo)
++                throws RemoteException {
++            // Only allow internal clients to authenticate with a different userId.
++            final int callingUserId = UserHandle.getCallingUserId();
++            final int callingUid = Binder.getCallingUid();
++            final int callingPid = Binder.getCallingPid();
++            if (userId == callingUserId) {
++                checkPermission();
++            } else {
++                Slog.w(TAG, "User " + callingUserId + " is requesting authentication of userid: "
++                        + userId);
++                checkInternalPermission();
++            }
++
++            if (!checkAppOps(callingUid, opPackageName, "authenticate()")) {
++                authenticateFastFail("Denied by app ops: " + opPackageName, receiver);
++                return -1;
++            }
++
++            if (token == null || receiver == null || opPackageName == null || promptInfo == null) {
++                authenticateFastFail(
++                        "Unable to authenticate, one or more null arguments", receiver);
++                return -1;
++            }
++
++            if (!Utils.isForeground(callingUid, callingPid)) {
++                authenticateFastFail("Caller is not foreground: " + opPackageName, receiver);
++                return -1;
++            }
++
++            if (promptInfo.containsTestConfigurations()) {
++                if (getContext().checkCallingOrSelfPermission(TEST_BIOMETRIC)
++                        != PackageManager.PERMISSION_GRANTED) {
++                    checkInternalPermission();
++                }
++            }
++
++            // Only allow internal clients to enable non-public options.
++            if (promptInfo.containsPrivateApiConfigurations()) {
++                checkInternalPermission();
++            }
++            if (promptInfo.containsSetLogoApiConfigurations()) {
++                checkManageBiometricPermission();
++            }
++
++            final long identity = Binder.clearCallingIdentity();
++            try {
++                VirtualDeviceManagerInternal vdm = getLocalService(
++                        VirtualDeviceManagerInternal.class);
++                if (vdm != null) {
++                    vdm.onAuthenticationPrompt(callingUid);
++                }
++                return mBiometricService.authenticate(
++                        token, sessionId, userId, receiver, opPackageName, promptInfo);
++            } finally {
++                Binder.restoreCallingIdentity(identity);
++            }
++        }
++
++        private void authenticateFastFail(String message, IBiometricServiceReceiver receiver) {
++            // notify caller in cases where authentication is aborted before calling into
++            // IBiometricService without raising an exception
++            Slog.e(TAG, "authenticateFastFail: " + message);
++            try {
++                receiver.onError(TYPE_NONE, BIOMETRIC_ERROR_CANCELED, 0 /*vendorCode */);
++            } catch (RemoteException e) {
++                Slog.e(TAG, "authenticateFastFail failed to notify caller", e);
++            }
++        }
++
++        @Override
++        public void cancelAuthentication(IBinder token, String opPackageName, long requestId)
++                throws RemoteException {
++            checkPermission();
++
++            if (token == null || opPackageName == null) {
++                Slog.e(TAG, "Unable to cancel authentication, one or more null arguments");
++                return;
++            }
++
++            final long identity = Binder.clearCallingIdentity();
++            try {
++                mBiometricService.cancelAuthentication(token, opPackageName, requestId);
++            } finally {
++                Binder.restoreCallingIdentity(identity);
++            }
++        }
++
++        @Override
++        public int canAuthenticate(String opPackageName, int userId,
++                @Authenticators.Types int authenticators) throws RemoteException {
++
++            // Only allow internal clients to call canAuthenticate with a different userId.
++            final int callingUserId = UserHandle.getCallingUserId();
++
++            if (userId != callingUserId) {
++                checkInternalPermission();
++            } else {
++                checkPermission();
++            }
++
++            final long identity = Binder.clearCallingIdentity();
++            try {
++                final int result = mBiometricService.canAuthenticate(
++                        opPackageName, userId, callingUserId, authenticators);
++                Slog.d(TAG, "canAuthenticate"
++                        + ", userId: " + userId
++                        + ", callingUserId: " + callingUserId
++                        + ", authenticators: " + authenticators
++                        + ", result: " + result);
++                return result;
++            } finally {
++                Binder.restoreCallingIdentity(identity);
++            }
++        }
++
++        @Override
++        public long getLastAuthenticationTime(int userId,
++                @Authenticators.Types int authenticators) throws RemoteException {
++            // Only allow internal clients to call getLastAuthenticationTime with a different
++            // userId.
++            final int callingUserId = UserHandle.getCallingUserId();
++
++            if (userId != callingUserId) {
++                checkInternalPermission();
++            } else {
++                checkPermission();
++            }
++
++            final long identity = Binder.clearCallingIdentity();
++            try {
++                // We can't do this above because we need the READ_DEVICE_CONFIG permission, which
++                // the calling user may not possess.
++                if (!Flags.lastAuthenticationTime()) {
++                    throw new UnsupportedOperationException();
++                }
++
++                return mBiometricService.getLastAuthenticationTime(userId, authenticators);
++            } finally {
++                Binder.restoreCallingIdentity(identity);
++            }
++        }
++
++        @Override
++        public boolean hasEnrolledBiometrics(int userId, String opPackageName)
++                throws RemoteException {
++            checkInternalPermission();
++            final long identity = Binder.clearCallingIdentity();
++            try {
++                return mBiometricService.hasEnrolledBiometrics(userId, opPackageName);
++            } finally {
++                Binder.restoreCallingIdentity(identity);
++            }
++        }
++
++        @Override
++        public void registerEnabledOnKeyguardCallback(
++                IBiometricEnabledOnKeyguardCallback callback) throws RemoteException {
++            checkInternalPermission();
++            final long identity = Binder.clearCallingIdentity();
++            try {
++                mBiometricService.registerEnabledOnKeyguardCallback(callback);
++            } finally {
++                Binder.restoreCallingIdentity(identity);
++            }
++        }
++
++        @Override
++        public void registerAuthenticationStateListener(AuthenticationStateListener listener)
++                throws RemoteException {
++            checkInternalPermission();
++            final IFingerprintService fingerprintService = mInjector.getFingerprintService();
++            if (fingerprintService != null) {
++                fingerprintService.registerAuthenticationStateListener(listener);
++            }
++            final IFaceService faceService = mInjector.getFaceService();
++            if (faceService != null) {
++                faceService.registerAuthenticationStateListener(listener);
++            }
++        }
++
++        @Override
++        public void unregisterAuthenticationStateListener(AuthenticationStateListener listener)
++                throws RemoteException {
++            checkInternalPermission();
++            final IFingerprintService fingerprintService = mInjector.getFingerprintService();
++            if (fingerprintService != null) {
++                fingerprintService.unregisterAuthenticationStateListener(listener);
++            }
++            final IFaceService faceService = mInjector.getFaceService();
++            if (faceService != null) {
++                faceService.unregisterAuthenticationStateListener(listener);
++            }
++        }
++
++        @Override
++        public void invalidateAuthenticatorIds(int userId, int fromSensorId,
++                IInvalidationCallback callback) throws RemoteException {
++            checkInternalPermission();
++
++            final long identity = Binder.clearCallingIdentity();
++            try {
++                mBiometricService.invalidateAuthenticatorIds(userId, fromSensorId, callback);
++            } finally {
++                Binder.restoreCallingIdentity(identity);
++            }
++        }
++
++        @Override
++        public long[] getAuthenticatorIds(int userId) throws RemoteException {
++            // In this method, we're not checking whether the caller is permitted to use face
++            // API because current authenticator ID is leaked (in a more contrived way) via Android
++            // Keystore (android.security.keystore package): the user of that API can create a key
++            // which requires face authentication for its use, and then query the key's
++            // characteristics (hidden API) which returns, among other things, face
++            // authenticator ID which was active at key creation time.
++            //
++            // Reason: The part of Android Keystore which runs inside an app's process invokes this
++            // method in certain cases. Those cases are not always where the developer demonstrates
++            // explicit intent to use biometric functionality. Thus, to avoiding throwing an
++            // unexpected SecurityException this method does not check whether its caller is
++            // permitted to use face API.
++            //
++            // The permission check should be restored once Android Keystore no longer invokes this
++            // method from inside app processes.
++
++            final int callingUserId = UserHandle.getCallingUserId();
++            if (userId != callingUserId) {
++                getContext().enforceCallingOrSelfPermission(USE_BIOMETRIC_INTERNAL,
++                        "Must have " + USE_BIOMETRIC_INTERNAL + " permission.");
++            }
++            final long identity = Binder.clearCallingIdentity();
++            try {
++                return mBiometricService.getAuthenticatorIds(userId);
++            } finally {
++                Binder.restoreCallingIdentity(identity);
++            }
++        }
++
++        @Override
++        public void resetLockoutTimeBound(IBinder token, String opPackageName, int fromSensorId,
++                int userId, byte[] hardwareAuthToken) throws RemoteException {
++            checkInternalPermission();
++
++            final long identity = Binder.clearCallingIdentity();
++            try {
++                mBiometricService.resetLockoutTimeBound(token, opPackageName, fromSensorId, userId,
++                        hardwareAuthToken);
++            } finally {
++                Binder.restoreCallingIdentity(identity);
++            }
++        }
++
++        @Override
++        public void resetLockout(int userId, byte[] hardwareAuthToken) throws RemoteException {
++            checkInternalPermission();
++            final long identity = Binder.clearCallingIdentity();
++            try {
++                mBiometricService.resetLockout(userId, hardwareAuthToken);
++            } finally {
++                Binder.restoreCallingIdentity(identity);
++            }
++        }
++
++        @Override
++        public CharSequence getButtonLabel(
++                int userId,
++                String opPackageName,
++                @Authenticators.Types int authenticators) throws RemoteException {
++
++            // Only allow internal clients to call getButtonLabel with a different userId.
++            final int callingUserId = UserHandle.getCallingUserId();
++
++            if (userId != callingUserId) {
++                checkInternalPermission();
++            } else {
++                checkPermission();
++            }
++
++            final long identity = Binder.clearCallingIdentity();
++            try {
++                @BiometricAuthenticator.Modality final int modality =
++                        mBiometricService.getCurrentModality(
++                                opPackageName, userId, callingUserId, authenticators);
++
++                final String result;
++                switch (getCredentialBackupModality(modality)) {
++                    case BiometricAuthenticator.TYPE_NONE:
++                        result = null;
++                        break;
++                    case BiometricAuthenticator.TYPE_CREDENTIAL:
++                        result = getContext().getString(R.string.screen_lock_app_setting_name);
++                        break;
++                    case BiometricAuthenticator.TYPE_FINGERPRINT:
++                        result = getContext().getString(R.string.fingerprint_app_setting_name);
++                        break;
++                    case BiometricAuthenticator.TYPE_FACE:
++                        result = getContext().getString(R.string.face_app_setting_name);
++                        break;
++                    default:
++                        result = getContext().getString(R.string.biometric_app_setting_name);
++                        break;
++                }
++
++                return result;
++            } finally {
++                Binder.restoreCallingIdentity(identity);
++            }
++        }
++
++        @Override
++        public CharSequence getPromptMessage(
++                int userId,
++                String opPackageName,
++                @Authenticators.Types int authenticators) throws RemoteException {
++
++            // Only allow internal clients to call getButtonLabel with a different userId.
++            final int callingUserId = UserHandle.getCallingUserId();
++
++            if (userId != callingUserId) {
++                checkInternalPermission();
++            } else {
++                checkPermission();
++            }
++
++            final long identity = Binder.clearCallingIdentity();
++            try {
++                @BiometricAuthenticator.Modality final int modality =
++                        mBiometricService.getCurrentModality(
++                                opPackageName, userId, callingUserId, authenticators);
++
++                final boolean isCredentialAllowed = Utils.isCredentialRequested(authenticators);
++
++                final String result;
++                switch (getCredentialBackupModality(modality)) {
++                    case BiometricAuthenticator.TYPE_NONE:
++                        result = null;
++                        break;
++
++                    case BiometricAuthenticator.TYPE_CREDENTIAL:
++                        result = getContext().getString(
++                                R.string.screen_lock_dialog_default_subtitle);
++                        break;
++
++                    case BiometricAuthenticator.TYPE_FINGERPRINT:
++                        if (isCredentialAllowed) {
++                            result = getContext().getString(
++                                    R.string.fingerprint_or_screen_lock_dialog_default_subtitle);
++                        } else {
++                            result = getContext().getString(
++                                    R.string.fingerprint_dialog_default_subtitle);
++                        }
++                        break;
++
++                    case BiometricAuthenticator.TYPE_FACE:
++                        if (isCredentialAllowed) {
++                            result = getContext().getString(
++                                    R.string.face_or_screen_lock_dialog_default_subtitle);
++                        } else {
++                            result = getContext().getString(R.string.face_dialog_default_subtitle);
++                        }
++                        break;
++
++                    default:
++                        if (isCredentialAllowed) {
++                            result = getContext().getString(
++                                    R.string.biometric_or_screen_lock_dialog_default_subtitle);
++                        } else {
++                            result = getContext().getString(
++                                    R.string.biometric_dialog_default_subtitle);
++                        }
++                        break;
++                }
++
++                return result;
++            } finally {
++                Binder.restoreCallingIdentity(identity);
++            }
++        }
++
++        @Override
++        public CharSequence getSettingName(
++                int userId,
++                String opPackageName,
++                @Authenticators.Types int authenticators) throws RemoteException {
++
++            // Only allow internal clients to call getButtonLabel with a different userId.
++            final int callingUserId = UserHandle.getCallingUserId();
++
++            if (userId != callingUserId) {
++                checkInternalPermission();
++            } else {
++                checkPermission();
++            }
++
++            final long identity = Binder.clearCallingIdentity();
++            try {
++                @BiometricAuthenticator.Modality final int modality =
++                        mBiometricService.getSupportedModalities(authenticators);
++
++                final String result;
++                switch (modality) {
++                    // Handle the case of a single supported modality.
++                    case BiometricAuthenticator.TYPE_NONE:
++                        result = null;
++                        break;
++                    case BiometricAuthenticator.TYPE_CREDENTIAL:
++                        result = getContext().getString(R.string.screen_lock_app_setting_name);
++                        break;
++                    case BiometricAuthenticator.TYPE_IRIS:
++                        result = getContext().getString(R.string.biometric_app_setting_name);
++                        break;
++                    case BiometricAuthenticator.TYPE_FINGERPRINT:
++                        result = getContext().getString(R.string.fingerprint_app_setting_name);
++                        break;
++                    case BiometricAuthenticator.TYPE_FACE:
++                        result = getContext().getString(R.string.face_app_setting_name);
++                        break;
++
++                    // Handle other possible modality combinations.
++                    default:
++                        if ((modality & BiometricAuthenticator.TYPE_CREDENTIAL) == 0) {
++                            // 2+ biometric modalities are supported (but not device credential).
++                            result = getContext().getString(R.string.biometric_app_setting_name);
++                        } else {
++                            @BiometricAuthenticator.Modality final int biometricModality =
++                                    modality & ~BiometricAuthenticator.TYPE_CREDENTIAL;
++                            if (biometricModality == BiometricAuthenticator.TYPE_FINGERPRINT) {
++                                // Only device credential and fingerprint are supported.
++                                result = getContext().getString(
++                                        R.string.fingerprint_or_screen_lock_app_setting_name);
++                            } else if (biometricModality == BiometricAuthenticator.TYPE_FACE) {
++                                // Only device credential and face are supported.
++                                result = getContext().getString(
++                                        R.string.face_or_screen_lock_app_setting_name);
++                            } else {
++                                // Device credential and 1+ other biometric(s) are supported.
++                                result = getContext().getString(
++                                        R.string.biometric_or_screen_lock_app_setting_name);
++                            }
++                        }
++                        break;
++                }
++                return result;
++            } finally {
++                Binder.restoreCallingIdentity(identity);
++            }
++        }
++    }
++
++    public AuthService(Context context) {
++        this(context, new Injector());
++    }
++
++    public AuthService(Context context, Injector injector) {
++        super(context);
++
++        mInjector = injector;
++        mImpl = new AuthServiceImpl();
++    }
++
++
++    /**
++     * Registration of all HIDL and AIDL biometric HALs starts here.
++     * The flow looks like this:
++     * AuthService
++     * └── .onStart()
++     *     └── .registerAuthenticators(...)
++     *         ├── FaceService.registerAuthenticators(...)
++     *         │   └── for (p : serviceProviders)
++     *         │       └── for (s : p.sensors)
++     *         │           └── BiometricService.registerAuthenticator(s)
++     *         │
++     *         ├── FingerprintService.registerAuthenticators(...)
++     *         │   └── for (p : serviceProviders)
++     *         │       └── for (s : p.sensors)
++     *         │           └── BiometricService.registerAuthenticator(s)
++     *         │
++     *         └── IrisService.registerAuthenticators(...)
++     *             └── for (p : serviceProviders)
++     *                 └── for (s : p.sensors)
++     *                     └── BiometricService.registerAuthenticator(s)
++     */
++    @Override
++    public void onStart() {
++        mBiometricService = mInjector.getBiometricService();
++
++        final SensorConfig[] hidlConfigs;
++        if (!mInjector.isHidlDisabled(getContext())) {
++            final int firstApiLevel = SystemProperties.getInt(SYSPROP_FIRST_API_LEVEL, 0);
++            final int apiLevel = SystemProperties.getInt(SYSPROP_API_LEVEL, firstApiLevel);
++            String[] configStrings = mInjector.getConfiguration(getContext());
++            if (configStrings.length == 0) {
++                // For backwards compatibility with R where biometrics could work without being
++                // configured in config_biometric_sensors. In the absence of a vendor provided
++                // configuration, we assume the weakest biometric strength (i.e. convenience).
++                Slog.w(TAG, "Found vendor partition without config_biometric_sensors");
++                configStrings = generateRSdkCompatibleConfiguration();
++            }
++            hidlConfigs = new SensorConfig[configStrings.length];
++            for (int i = 0; i < configStrings.length; ++i) {
++                hidlConfigs[i] = new SensorConfig(configStrings[i]);
++            }
++        } else {
++            hidlConfigs = null;
++        }
++
++        if (com.android.server.biometrics.Flags.deHidl()) {
++            registerAuthenticators();
++        } else {
++            // Registers HIDL and AIDL authenticators, but only HIDL configs need to be provided.
++            registerAuthenticators(hidlConfigs);
++
++        }
++
++        mInjector.publishBinderService(this, mImpl);
++    }
++
++    private void registerAuthenticators() {
++        BiometricHandlerProvider handlerProvider = mInjector.getBiometricHandlerProvider();
++
++        handlerProvider.getFingerprintHandler().post(() ->
++                registerFingerprintSensors(mInjector.getFingerprintAidlInstances(),
++                        mInjector.getFingerprintConfiguration(getContext()), getContext(),
++                        mInjector.getFingerprintService()));
++        handlerProvider.getFaceHandler().post(() ->
++                registerFaceSensors(mInjector.getFaceAidlInstances(),
++                        mInjector.getFaceConfiguration(getContext()), getContext(),
++                        mInjector.getFaceService()));
++        registerIrisSensors(mInjector.getIrisConfiguration(getContext()));
++    }
++
++    private void registerIrisSensors(String[] hidlConfigStrings) {
++        final SensorConfig[] hidlConfigs;
++        if (!mInjector.isHidlDisabled(getContext())) {
++            final int firstApiLevel = SystemProperties.getInt(SYSPROP_FIRST_API_LEVEL, 0);
++            final int apiLevel = SystemProperties.getInt(SYSPROP_API_LEVEL, firstApiLevel);
++            if (hidlConfigStrings.length == 0 && apiLevel == Build.VERSION_CODES.R) {
++                // For backwards compatibility with R where biometrics could work without being
++                // configured in config_biometric_sensors. In the absence of a vendor provided
++                // configuration, we assume the weakest biometric strength (i.e. convenience).
++                Slog.w(TAG, "Found R vendor partition without config_biometric_sensors");
++                hidlConfigStrings = generateRSdkCompatibleConfiguration();
++            }
++            hidlConfigs = new SensorConfig[hidlConfigStrings.length];
++            for (int i = 0; i < hidlConfigStrings.length; ++i) {
++                hidlConfigs[i] = new SensorConfig(hidlConfigStrings[i]);
++            }
++        } else {
++            hidlConfigs = null;
++        }
++
++        final List<SensorPropertiesInternal> hidlIrisSensors = new ArrayList<>();
++
++        if (hidlConfigs != null) {
++            for (SensorConfig sensor : hidlConfigs) {
++                switch (sensor.modality) {
++                    case TYPE_IRIS:
++                        hidlIrisSensors.add(getHidlIrisSensorProps(sensor.id, sensor.strength));
++                        break;
++
++                    default:
++                        Slog.e(TAG, "Unknown modality: " + sensor.modality);
++                }
++            }
++        }
++
++        final IIrisService irisService = mInjector.getIrisService();
++        if (irisService != null) {
++            try {
++                irisService.registerAuthenticators(hidlIrisSensors);
++            } catch (RemoteException e) {
++                Slog.e(TAG, "RemoteException when registering iris authenticators", e);
++            }
++        } else if (hidlIrisSensors.size() > 0) {
++            Slog.e(TAG, "HIDL iris configuration exists, but IrisService is null.");
++        }
++    }
++
++    /**
++     * This method is invoked on {@link BiometricHandlerProvider.mFaceHandler}.
++     */
++    private static void registerFaceSensors(final String[] faceAidlInstances,
++            final String[] hidlConfigStrings, final Context context,
++            final IFaceService faceService) {
++        final FaceSensorConfigurations mFaceSensorConfigurations =
++                new FaceSensorConfigurations(hidlConfigStrings != null
++                        && hidlConfigStrings.length > 0);
++
++        if (hidlConfigStrings != null && hidlConfigStrings.length > 0) {
++            mFaceSensorConfigurations.addHidlConfigs(hidlConfigStrings, context);
++        }
++
++        if (faceAidlInstances != null && faceAidlInstances.length > 0) {
++            mFaceSensorConfigurations.addAidlConfigs(faceAidlInstances,
++                    name -> IFace.Stub.asInterface(Binder.allowBlocking(
++                            ServiceManager.waitForDeclaredService(name))));
++        }
++
++        if (faceService != null) {
++            try {
++                faceService.registerAuthenticatorsLegacy(mFaceSensorConfigurations);
++            } catch (RemoteException e) {
++                Slog.e(TAG, "RemoteException when registering face authenticators", e);
++            }
++        }  else if (mFaceSensorConfigurations.hasSensorConfigurations()) {
++            Slog.e(TAG, "Face configuration exists, but FaceService is null.");
++        }
++    }
++
++    /**
++     * This method is invoked on {@link BiometricHandlerProvider.mFingerprintHandler}.
++     */
++    private static void registerFingerprintSensors(final String[] fingerprintAidlInstances,
++            final String[] hidlConfigStrings, final Context context,
++            final IFingerprintService fingerprintService) {
++        final FingerprintSensorConfigurations mFingerprintSensorConfigurations =
++                new FingerprintSensorConfigurations(!(hidlConfigStrings != null
++                        && hidlConfigStrings.length > 0));
++
++        if (hidlConfigStrings != null && hidlConfigStrings.length > 0) {
++            mFingerprintSensorConfigurations.addHidlSensors(hidlConfigStrings, context);
++        }
++
++        if (fingerprintAidlInstances != null && fingerprintAidlInstances.length > 0) {
++            mFingerprintSensorConfigurations.addAidlSensors(fingerprintAidlInstances,
++                    name -> IFingerprint.Stub.asInterface(Binder.allowBlocking(
++                            ServiceManager.waitForDeclaredService(name))));
++        }
++
++        if (fingerprintService != null) {
++            try {
++                fingerprintService.registerAuthenticatorsLegacy(mFingerprintSensorConfigurations);
++            } catch (RemoteException e) {
++                Slog.e(TAG, "RemoteException when registering fingerprint authenticators", e);
++            }
++        }  else if (mFingerprintSensorConfigurations.hasSensorConfigurations()) {
++            Slog.e(TAG, "Fingerprint configuration exists, but FingerprintService is null.");
++        }
++    }
++
++    /**
++     * Generates an array of string configs with entries that correspond to the biometric features
++     * declared on the device. Returns an empty array if no biometric features are declared.
++     * Biometrics are assumed to be of the weakest strength class, i.e. convenience.
++     */
++    private @NonNull String[] generateRSdkCompatibleConfiguration() {
++        final PackageManager pm = getContext().getPackageManager();
++        final ArrayList<String> modalities = new ArrayList<>();
++        if (pm.hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)) {
++            modalities.add(String.valueOf(BiometricAuthenticator.TYPE_FINGERPRINT));
++        }
++        if (pm.hasSystemFeature(PackageManager.FEATURE_FACE)) {
++            modalities.add(String.valueOf(BiometricAuthenticator.TYPE_FACE));
++        }
++        final String strength = String.valueOf(Authenticators.BIOMETRIC_STRONG);
++        final String[] configStrings = new String[modalities.size()];
++        for (int i = 0; i < modalities.size(); ++i) {
++            final String id = String.valueOf(i);
++            final String modality = modalities.get(i);
++            configStrings[i] = String.join(":" /* delimiter */, id, modality, strength);
++        }
++        Slog.d(TAG, "Generated config_biometric_sensors: " + Arrays.toString(configStrings));
++        return configStrings;
++    }
++
++    /**
++     * Registers HIDL and AIDL authenticators for all of the available modalities.
++     *
++     * @param hidlSensors Array of {@link SensorConfig} configuration for all of the HIDL sensors
++     *                    available on the device. This array may contain configuration for
++     *                    different modalities and different sensors of the same modality in
++     *                    arbitrary order. Can be null if no HIDL sensors exist on the device.
++     */
++    private void registerAuthenticators(@Nullable SensorConfig[] hidlSensors) {
++        List<FingerprintSensorPropertiesInternal> hidlFingerprintSensors = new ArrayList<>();
++        List<FaceSensorPropertiesInternal> hidlFaceSensors = new ArrayList<>();
++        // Iris doesn't have IrisSensorPropertiesInternal, using SensorPropertiesInternal instead.
++        List<SensorPropertiesInternal> hidlIrisSensors = new ArrayList<>();
++
++        if (hidlSensors != null) {
++            for (SensorConfig sensor : hidlSensors) {
++                Slog.d(TAG, "Registering HIDL ID: " + sensor.id + " Modality: " + sensor.modality
++                        + " Strength: " + sensor.strength);
++                switch (sensor.modality) {
++                    case TYPE_FINGERPRINT:
++                        hidlFingerprintSensors.add(
++                                getHidlFingerprintSensorProps(sensor.id, sensor.strength));
++                        break;
++
++                    case TYPE_FACE:
++                        hidlFaceSensors.add(getHidlFaceSensorProps(sensor.id, sensor.strength));
++                        break;
++
++                    case TYPE_IRIS:
++                        hidlIrisSensors.add(getHidlIrisSensorProps(sensor.id, sensor.strength));
++                        break;
++
++                    default:
++                        Slog.e(TAG, "Unknown modality: " + sensor.modality);
++                }
++            }
++        }
++
++        final IFingerprintService fingerprintService = mInjector.getFingerprintService();
++        if (fingerprintService != null) {
++            try {
++                fingerprintService.registerAuthenticators(hidlFingerprintSensors);
++            } catch (RemoteException e) {
++                Slog.e(TAG, "RemoteException when registering fingerprint authenticators", e);
++            }
++        } else if (hidlFingerprintSensors.size() > 0) {
++            Slog.e(TAG, "HIDL fingerprint configuration exists, but FingerprintService is null.");
++        }
++
++        final IFaceService faceService = mInjector.getFaceService();
++        if (faceService != null) {
++            try {
++                faceService.registerAuthenticators(hidlFaceSensors);
++            } catch (RemoteException e) {
++                Slog.e(TAG, "RemoteException when registering face authenticators", e);
++            }
++        } else if (hidlFaceSensors.size() > 0) {
++            Slog.e(TAG, "HIDL face configuration exists, but FaceService is null.");
++        }
++
++        final IIrisService irisService = mInjector.getIrisService();
++        if (irisService != null) {
++            try {
++                irisService.registerAuthenticators(hidlIrisSensors);
++            } catch (RemoteException e) {
++                Slog.e(TAG, "RemoteException when registering iris authenticators", e);
++            }
++        } else if (hidlIrisSensors.size() > 0) {
++            Slog.e(TAG, "HIDL iris configuration exists, but IrisService is null.");
++        }
++    }
++
++    private void checkInternalPermission() {
++        getContext().enforceCallingOrSelfPermission(USE_BIOMETRIC_INTERNAL,
++                "Must have USE_BIOMETRIC_INTERNAL permission");
++    }
++
++    private void checkManageBiometricPermission() {
++        getContext().enforceCallingOrSelfPermission(SET_BIOMETRIC_DIALOG_LOGO,
++                "Must have SET_BIOMETRIC_DIALOG_LOGO permission");
++    }
++
++    private void checkPermission() {
++        if (getContext().checkCallingOrSelfPermission(USE_FINGERPRINT)
++                != PackageManager.PERMISSION_GRANTED) {
++            getContext().enforceCallingOrSelfPermission(USE_BIOMETRIC,
++                    "Must have USE_BIOMETRIC permission");
++        }
++    }
++
++    private boolean checkAppOps(int uid, String opPackageName, String reason) {
++        return mInjector.getAppOps(getContext()).noteOp(AppOpsManager.OP_USE_BIOMETRIC, uid,
++                opPackageName, null /* attributionTag */, reason) == AppOpsManager.MODE_ALLOWED;
++    }
++
++    @BiometricAuthenticator.Modality
++    private static int getCredentialBackupModality(@BiometricAuthenticator.Modality int modality) {
++        return modality == BiometricAuthenticator.TYPE_CREDENTIAL
++                ? modality : (modality & ~BiometricAuthenticator.TYPE_CREDENTIAL);
++    }
++
++
++    private FingerprintSensorPropertiesInternal getHidlFingerprintSensorProps(int sensorId,
++            @BiometricManager.Authenticators.Types int strength) {
++        // The existence of config_udfps_sensor_props indicates that the sensor is UDFPS.
++        final int[] udfpsProps = getContext().getResources().getIntArray(
++                com.android.internal.R.array.config_udfps_sensor_props);
++
++        // Non-empty workaroundLocations indicates that the sensor is SFPS.
++        final List<SensorLocationInternal> workaroundLocations =
++                getWorkaroundSensorProps(getContext());
++
++        final boolean isUdfps = !ArrayUtils.isEmpty(udfpsProps);
++
++        // config_is_powerbutton_fps indicates whether device has a power button fingerprint sensor.
++        final boolean isPowerbuttonFps = getContext().getResources().getBoolean(
++                R.bool.config_is_powerbutton_fps);
++
++        final @FingerprintSensorProperties.SensorType int sensorType;
++        if (isUdfps) {
++            sensorType = FingerprintSensorProperties.TYPE_UDFPS_OPTICAL;
++        } else if (isPowerbuttonFps) {
++            sensorType = FingerprintSensorProperties.TYPE_POWER_BUTTON;
++        } else {
++            sensorType = FingerprintSensorProperties.TYPE_REAR;
++        }
++
++        // IBiometricsFingerprint@2.1 does not manage timeout below the HAL, so the Gatekeeper HAT
++        // cannot be checked.
++        final boolean resetLockoutRequiresHardwareAuthToken = false;
++        final int maxEnrollmentsPerUser = getContext().getResources().getInteger(
++                R.integer.config_fingerprintMaxTemplatesPerUser);
++
++        final List<ComponentInfoInternal> componentInfo = new ArrayList<>();
++        if (isUdfps && udfpsProps.length == 3) {
++            return new FingerprintSensorPropertiesInternal(sensorId,
++                    Utils.authenticatorStrengthToPropertyStrength(strength), maxEnrollmentsPerUser,
++                    componentInfo, sensorType, true /* halControlsIllumination */,
++                    resetLockoutRequiresHardwareAuthToken,
++                    List.of(new SensorLocationInternal("" /* display */, udfpsProps[0],
++                            udfpsProps[1], udfpsProps[2])));
++        } else if (!workaroundLocations.isEmpty()) {
++            return new FingerprintSensorPropertiesInternal(sensorId,
++                    Utils.authenticatorStrengthToPropertyStrength(strength), maxEnrollmentsPerUser,
++                    componentInfo, sensorType, false /* halControlsIllumination */,
++                    resetLockoutRequiresHardwareAuthToken,
++                    workaroundLocations);
++        } else {
++            return new FingerprintSensorPropertiesInternal(sensorId,
++                    Utils.authenticatorStrengthToPropertyStrength(strength), maxEnrollmentsPerUser,
++                    componentInfo, sensorType, resetLockoutRequiresHardwareAuthToken);
++        }
++    }
++
++    private FaceSensorPropertiesInternal getHidlFaceSensorProps(int sensorId,
++            @BiometricManager.Authenticators.Types int strength) {
++        final boolean supportsSelfIllumination = getContext().getResources().getBoolean(
++                R.bool.config_faceAuthSupportsSelfIllumination);
++        final int maxTemplatesAllowed = getContext().getResources().getInteger(
++                R.integer.config_faceMaxTemplatesPerUser);
++        final List<ComponentInfoInternal> componentInfo = new ArrayList<>();
++        final boolean supportsFaceDetect = false;
++        final boolean resetLockoutRequiresChallenge = true;
++        return new FaceSensorPropertiesInternal(sensorId,
++                Utils.authenticatorStrengthToPropertyStrength(strength), maxTemplatesAllowed,
++                componentInfo, FaceSensorProperties.TYPE_UNKNOWN, supportsFaceDetect,
++                supportsSelfIllumination, resetLockoutRequiresChallenge);
++    }
++
++    private SensorPropertiesInternal getHidlIrisSensorProps(int sensorId,
++            @BiometricManager.Authenticators.Types int strength) {
++        final int maxEnrollmentsPerUser = 1;
++        final List<ComponentInfoInternal> componentInfo = new ArrayList<>();
++        final boolean resetLockoutRequiresHardwareAuthToken = false;
++        final boolean resetLockoutRequiresChallenge = false;
++        return new SensorPropertiesInternal(sensorId,
++                Utils.authenticatorStrengthToPropertyStrength(strength), maxEnrollmentsPerUser,
++                componentInfo, resetLockoutRequiresHardwareAuthToken,
++                resetLockoutRequiresChallenge);
++    }
++}
 diff --git a/services/core/java/com/android/server/biometrics/sensors/fingerprint/FingerprintService.java b/services/core/java/com/android/server/biometrics/sensors/fingerprint/FingerprintService.java
-index 83b306b07c27..28b45a59ee62 100644
+index 1ba12134ab29..41a7eb0acffa 100644
 --- a/services/core/java/com/android/server/biometrics/sensors/fingerprint/FingerprintService.java
 +++ b/services/core/java/com/android/server/biometrics/sensors/fingerprint/FingerprintService.java
-@@ -889,8 +889,9 @@ public class FingerprintService extends SystemService {
+@@ -913,8 +913,9 @@ public class FingerprintService extends SystemService {
                          filteredInstances = filterAvailableHalInstances(hidlSensors, aidlSensors);
  
                  final List<ServiceProvider> providers = new ArrayList<>();
@@ -941,59 +2095,59 @@ index 83b306b07c27..28b45a59ee62 100644
                  return providers;
              });
 diff --git a/services/core/java/com/android/server/biometrics/sensors/fingerprint/aidl/FingerprintProvider.java b/services/core/java/com/android/server/biometrics/sensors/fingerprint/aidl/FingerprintProvider.java
-index 07a69d9ebd00..2bb568bedabc 100644
+index 158179dca499..5c822095bee4 100644
 --- a/services/core/java/com/android/server/biometrics/sensors/fingerprint/aidl/FingerprintProvider.java
 +++ b/services/core/java/com/android/server/biometrics/sensors/fingerprint/aidl/FingerprintProvider.java
-@@ -37,6 +37,7 @@ import android.hardware.biometrics.common.ComponentInfo;
+@@ -38,6 +38,7 @@ import android.hardware.biometrics.common.ComponentInfo;
  import android.hardware.biometrics.fingerprint.IFingerprint;
  import android.hardware.biometrics.fingerprint.PointerContext;
  import android.hardware.biometrics.fingerprint.SensorProps;
 +import android.hardware.biometrics.fingerprint.SensorLocation;
  import android.hardware.fingerprint.Fingerprint;
  import android.hardware.fingerprint.FingerprintAuthenticateOptions;
- import android.hardware.fingerprint.FingerprintManager;
-@@ -204,9 +205,32 @@ public class FingerprintProvider implements IBinder.DeathRecipient, ServiceProvi
-                         });
- 
-         final List<SensorLocationInternal> workaroundLocations = getWorkaroundSensorProps(context);
+ import android.hardware.fingerprint.FingerprintEnrollOptions;
+@@ -249,9 +250,32 @@ public class FingerprintProvider implements IBinder.DeathRecipient, ServiceProvi
+         } else {
+             final List<SensorLocationInternal> workaroundLocations =
+                     getWorkaroundSensorProps(mContext);
 +android.util.Log.e("PHH-Enroll", "Poping AIDL fp provider");
  
-         for (SensorProps prop : props) {
-             final int sensorId = prop.commonProps.sensorId;
-+            SensorLocation[] locations = prop.sensorLocations;
+             for (SensorProps prop : props) {
+                 final int sensorId = prop.commonProps.sensorId;
++                SensorLocation[] locations = prop.sensorLocations;
 +
-+            android.util.Log.e("PHH-Enroll", "Got fp props -- pre");
-+            for(SensorLocation loc: locations) {
-+                android.util.Log.e("PHH-Enroll", " - " + loc.sensorLocationX + ", " + loc.sensorLocationY + ", " +loc.sensorRadius + ", disp =" + loc.display + ", shape " + loc.sensorShape);
-+            }
-+            if (locations.length == 1 && locations[0].sensorLocationX == 0) {
-+                int[] otherValues = com.android.server.biometrics.AuthService.dynamicUdfpsProps(context);
-+                if (otherValues.length > 0) {
-+                    SensorLocation loc = new SensorLocation();
-+                    loc.sensorLocationX = otherValues[0];
-+                    loc.sensorLocationY = otherValues[1];
-+                    loc.sensorRadius = otherValues[2];
-+                    locations[0] = loc;
++                android.util.Log.e("PHH-Enroll", "Got fp props -- pre");
++                for(SensorLocation loc: locations) {
++                    android.util.Log.e("PHH-Enroll", " - " + loc.sensorLocationX + ", " + loc.sensorLocationY + ", " +loc.sensorRadius + ", disp =" + loc.display + ", shape " + loc.sensorShape);
 +                }
-+            }
++                if (locations.length == 1 && locations[0].sensorLocationX == 0) {
++                    int[] otherValues = com.android.server.biometrics.AuthService.dynamicUdfpsProps(context);
++                    if (otherValues.length > 0) {
++                        SensorLocation loc = new SensorLocation();
++                        loc.sensorLocationX = otherValues[0];
++                        loc.sensorLocationY = otherValues[1];
++                        loc.sensorRadius = otherValues[2];
++                        locations[0] = loc;
++                    }
++                }
 +
-+            android.util.Log.e("PHH-Enroll", "Got fp props -- post");
-+            for(SensorLocation loc: locations) {
-+                android.util.Log.e("PHH-Enroll", " - " + loc.sensorLocationX + ", " + loc.sensorLocationY + ", " +loc.sensorRadius + ", disp =" + loc.display + ", shape " + loc.sensorShape);
-+            }
++                android.util.Log.e("PHH-Enroll", "Got fp props -- post");
++                for(SensorLocation loc: locations) {
++                    android.util.Log.e("PHH-Enroll", " - " + loc.sensorLocationX + ", " + loc.sensorLocationY + ", " +loc.sensorRadius + ", disp =" + loc.display + ", shape " + loc.sensorShape);
++                }
 +
- 
-             final List<ComponentInfoInternal> componentInfo = new ArrayList<>();
-             if (prop.commonProps.componentInfo != null) {
-@@ -226,7 +250,7 @@ public class FingerprintProvider implements IBinder.DeathRecipient, ServiceProvi
-                             prop.halControlsIllumination,
-                             true /* resetLockoutRequiresHardwareAuthToken */,
-                             !workaroundLocations.isEmpty() ? workaroundLocations :
--                                    Arrays.stream(prop.sensorLocations).map(location ->
-+                                    Arrays.stream(locations).map(location ->
-                                                     new SensorLocationInternal(
-                                                             location.display,
-                                                             location.sensorLocationX,
+                 final List<ComponentInfoInternal> componentInfo = new ArrayList<>();
+                 if (prop.commonProps.componentInfo != null) {
+                     for (ComponentInfo info : prop.commonProps.componentInfo) {
+@@ -269,7 +293,7 @@ public class FingerprintProvider implements IBinder.DeathRecipient, ServiceProvi
+                                 prop.halControlsIllumination,
+                                 true /* resetLockoutRequiresHardwareAuthToken */,
+                                 !workaroundLocations.isEmpty() ? workaroundLocations :
+-                                        Arrays.stream(prop.sensorLocations).map(
++                                        Arrays.stream(locations).map(
+                                                         location -> new SensorLocationInternal(
+                                                                 location.display,
+                                                                 location.sensorLocationX,
 -- 
 2.34.1
 
