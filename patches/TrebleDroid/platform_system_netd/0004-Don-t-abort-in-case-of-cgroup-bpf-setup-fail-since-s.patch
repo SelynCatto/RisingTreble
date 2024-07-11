@@ -1,4 +1,4 @@
-From 9f973b4b122dcfb740104e816f312983496f65e6 Mon Sep 17 00:00:00 2001
+From 686d47def969ca3da4cbb18307bf6e0d2b1b122e Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Wed, 26 Oct 2022 18:13:56 -0400
 Subject: [PATCH 4/4] Don't abort in case of cgroup/bpf setup fail, since some

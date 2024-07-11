@@ -67,12 +67,12 @@ git reset --hard 204f1bad00aaf480ba33233f7b8c2ddaa03155dd
 cd ../../..
 
 apply "TrebleDroid"
+apply "UniversalX"
 cd vendor/lineage
 git am --abort
+git reset --hard 21d91cce4404e54fcf55184c50c33ae441d9cd58
 cd ../../
 apply "naz664"
-apply "UniversalX"
-apply "ji.luo"
 
 
 # Build treble app after applying patch

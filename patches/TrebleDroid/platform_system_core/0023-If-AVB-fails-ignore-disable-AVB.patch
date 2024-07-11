@@ -1,4 +1,4 @@
-From 1eb4279b4a3c9e5447cf812641e82b66438633e2 Mon Sep 17 00:00:00 2001
+From 3d11b41ab8c920e82006a927a13c1eb22fadb14d Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Sun, 31 Mar 2024 17:18:05 -0400
 Subject: [PATCH 23/24] If AVB fails, ignore/disable AVB
@@ -13,10 +13,10 @@ being AVB1.0
  2 files changed, 14 insertions(+), 3 deletions(-)
 
 diff --git a/init/first_stage_init.cpp b/init/first_stage_init.cpp
-index e48fa1554..77310fcdc 100644
+index c4d0f758d..0470444ff 100644
 --- a/init/first_stage_init.cpp
 +++ b/init/first_stage_init.cpp
-@@ -519,7 +519,11 @@ int FirstStageMain(int argc, char** argv) {
+@@ -520,7 +520,11 @@ int FirstStageMain(int argc, char** argv) {
          }
  
          if (!created_devices && !fsm->DoCreateDevices()) {
@@ -30,7 +30,7 @@ index e48fa1554..77310fcdc 100644
  
          if (!fsm->DoFirstStageMount()) {
 diff --git a/init/first_stage_mount.cpp b/init/first_stage_mount.cpp
-index 8cf7a89e4..e4f0b7be1 100644
+index 69acb0075..2e40ac7c6 100644
 --- a/init/first_stage_mount.cpp
 +++ b/init/first_stage_mount.cpp
 @@ -231,6 +231,12 @@ Result<std::unique_ptr<FirstStageMount>> FirstStageMount::Create(const std::stri

@@ -1,4 +1,4 @@
-From ae43796bf4e20075f711b59727a101bbe6e6fea2 Mon Sep 17 00:00:00 2001
+From 18b9a1c09131238a79692f8162199afcea30d142 Mon Sep 17 00:00:00 2001
 From: LuK1337 <priv.luk@gmail.com>
 Date: Fri, 21 Oct 2022 20:55:05 +0200
 Subject: [PATCH 08/14] Pass correct value to setPreferredNetworkType() for RIL
@@ -11,10 +11,10 @@ Change-Id: Id14be66a2ea4e85b6504bc03fd7d2f038185c17d
  2 files changed, 5 insertions(+), 3 deletions(-)
 
 diff --git a/src/java/com/android/internal/telephony/RIL.java b/src/java/com/android/internal/telephony/RIL.java
-index 7e989805d8..cb23ae58eb 100644
+index 4495a63008..c910c187c5 100644
 --- a/src/java/com/android/internal/telephony/RIL.java
 +++ b/src/java/com/android/internal/telephony/RIL.java
-@@ -3137,7 +3137,8 @@ public class RIL extends BaseCommands implements CommandsInterface {
+@@ -3180,7 +3180,8 @@ public class RIL extends BaseCommands implements CommandsInterface {
          mMetrics.writeSetPreferredNetworkType(mPhoneId, networkType);
  
          radioServiceInvokeHelper(HAL_SERVICE_NETWORK, rr, "setPreferredNetworkType", () -> {

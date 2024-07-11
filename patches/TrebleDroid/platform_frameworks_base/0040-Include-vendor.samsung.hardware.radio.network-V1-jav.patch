@@ -1,4 +1,4 @@
-From 6b7cdbbbbdc890153e50dc8404f1fdb81719b355 Mon Sep 17 00:00:00 2001
+From 0eeff8685e22c3d13990776b76642c1563e70c83 Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Wed, 21 Feb 2024 12:41:46 -0500
 Subject: [PATCH 40/44] Include vendor.samsung.hardware.radio.network-V1-java
@@ -9,10 +9,10 @@ Subject: [PATCH 40/44] Include vendor.samsung.hardware.radio.network-V1-java
  1 file changed, 1 insertion(+)
 
 diff --git a/Android.bp b/Android.bp
-index c63068db1660..e1c218caaf88 100644
+index af1074b7a998..ca9c8a600028 100644
 --- a/Android.bp
 +++ b/Android.bp
-@@ -232,6 +232,7 @@ java_library {
+@@ -240,6 +240,7 @@ java_library {
          "android.hardware.radio.messaging-V3-java",
          "android.hardware.radio.modem-V3-java",
          "android.hardware.radio.network-V3-java",

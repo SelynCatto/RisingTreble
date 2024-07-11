@@ -1,7 +1,7 @@
-From 8a21040d7cccbd885f5e0dbe3f408a320f00a531 Mon Sep 17 00:00:00 2001
+From 04c17ec4449de8cfc2ed833185fa327e77103fc7 Mon Sep 17 00:00:00 2001
 From: Alberto Ponces <ponces26@gmail.com>
 Date: Tue, 8 Jun 2021 09:44:26 +0100
-Subject: [PATCH 1/3] misc: Remove securize preference
+Subject: [PATCH 1/2] misc: Remove securize preference
 
 ---
  .../java/me/phh/treble/app/MiscSettings.kt    | 33 -------------------
@@ -9,10 +9,10 @@ Subject: [PATCH 1/3] misc: Remove securize preference
  2 files changed, 35 deletions(-)
 
 diff --git a/app/src/main/java/me/phh/treble/app/MiscSettings.kt b/app/src/main/java/me/phh/treble/app/MiscSettings.kt
-index 8b8fafb..652189e 100644
+index 78556be..5c6259e 100644
 --- a/app/src/main/java/me/phh/treble/app/MiscSettings.kt
 +++ b/app/src/main/java/me/phh/treble/app/MiscSettings.kt
-@@ -57,39 +57,6 @@ class MiscSettingsFragment : SettingsFragment() {
+@@ -58,39 +58,6 @@ class MiscSettingsFragment : SettingsFragment() {
      override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
          super.onCreatePreferences(savedInstanceState, rootKey)
  
@@ -53,10 +53,10 @@ index 8b8fafb..652189e 100644
          removeTelephonyPref!!.setOnPreferenceClickListener {
  
 diff --git a/app/src/main/res/xml/pref_misc.xml b/app/src/main/res/xml/pref_misc.xml
-index f4f20d4..713031c 100644
+index dbd8b88..d066265 100644
 --- a/app/src/main/res/xml/pref_misc.xml
 +++ b/app/src/main/res/xml/pref_misc.xml
-@@ -198,8 +198,6 @@
+@@ -203,8 +203,6 @@
              android:entryValues="@array/pref_misc_fod_color_values"
              android:key="key_misc_fod_color"
              android:title="Under-display fp color" />

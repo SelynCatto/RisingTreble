@@ -1,4 +1,4 @@
-From 100a2bd0af3ddc402a3ab294137bcf08a3f30b84 Mon Sep 17 00:00:00 2001
+From eaa0ee2cf0f5ffc1c817ce5b9924cd73b73f9f7a Mon Sep 17 00:00:00 2001
 From: Peter Cai <peter@typeblog.net>
 Date: Wed, 24 Aug 2022 15:45:18 -0400
 Subject: [PATCH 1/7] audio_hal_interface: Optionally use sysbta HAL
@@ -11,18 +11,18 @@ Change-Id: I59973e6ec84c5923be8a7c67b36b2e237f000860
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/system/audio_hal_interface/hal_version_manager.cc b/system/audio_hal_interface/hal_version_manager.cc
-index f66a20b76c..490c632aeb 100644
+index 611bd5fd51..cb9c10cf92 100644
 --- a/system/audio_hal_interface/hal_version_manager.cc
 +++ b/system/audio_hal_interface/hal_version_manager.cc
-@@ -95,7 +95,7 @@ BluetoothAudioHalVersion GetAidlInterfaceVersion() {
- 
-   auto provider_factory = IBluetoothAudioProviderFactory::fromBinder(
-       ::ndk::SpAIBinder(AServiceManager_waitForService(
--          kDefaultAudioProviderFactoryInterface.c_str())));
+@@ -83,7 +83,7 @@ BluetoothAudioHalVersion GetAidlInterfaceVersion() {
+     int version = 0;
+     auto provider_factory = IBluetoothAudioProviderFactory::fromBinder(
+         ::ndk::SpAIBinder(AServiceManager_waitForService(
+-            kDefaultAudioProviderFactoryInterface.c_str())));
 +              audioProviderFactoryInterface().c_str())));
  
-   if (provider_factory == nullptr) {
-     LOG_ERROR("Can't get aidl version from unknown factory");
+     if (provider_factory == nullptr) {
+       LOG_ERROR(
 -- 
 2.34.1
 

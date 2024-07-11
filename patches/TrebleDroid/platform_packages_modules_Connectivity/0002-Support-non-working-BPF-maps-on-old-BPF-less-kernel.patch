@@ -1,16 +1,16 @@
-From 0bac887e25dd9bd0fd07033b5c75a2bb5f1d69ae Mon Sep 17 00:00:00 2001
+From 4e7df8496dffb9093b53315ed966324faeb0720e Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Wed, 26 Oct 2022 18:11:10 -0400
 Subject: [PATCH 2/6] Support non-working BPF maps on old BPF-less kernel
 
 ---
- .../src/android/net/BpfNetMapsReader.java     | 13 +++++++--
- netbpfload/NetBpfLoad.cpp                     | 29 ++++++++-----------
+ .../src/android/net/BpfNetMapsReader.java     | 13 +++++--
+ netbpfload/NetBpfLoad.cpp                     | 34 ++++++++-----------
  .../libs/libnetworkstats/BpfNetworkStats.cpp  |  1 +
- .../server/net/NetworkStatsService.java       | 29 +++++++++++--------
- .../src/com/android/server/BpfNetMaps.java    | 14 +++++++--
- .../native/bpf_headers/include/bpf/BpfMap.h   | 21 ++++++++------
- 6 files changed, 64 insertions(+), 43 deletions(-)
+ .../server/net/NetworkStatsService.java       | 29 +++++++++-------
+ .../src/com/android/server/BpfNetMaps.java    | 14 ++++++--
+ .../native/bpf_headers/include/bpf/BpfMap.h   | 21 +++++++-----
+ 6 files changed, 66 insertions(+), 46 deletions(-)
 
 diff --git a/framework/src/android/net/BpfNetMapsReader.java b/framework/src/android/net/BpfNetMapsReader.java
 index ee422abd9c..d31024c686 100644
@@ -79,22 +79,33 @@ index ee422abd9c..d31024c686 100644
              return mDataSaverEnabledMap.getValue(DATA_SAVER_ENABLED_KEY).val == DATA_SAVER_ENABLED;
          } catch (ErrnoException e) {
 diff --git a/netbpfload/NetBpfLoad.cpp b/netbpfload/NetBpfLoad.cpp
-index 236adde3da..98207e3f75 100644
+index 8af4dd49a7..6a6122ed3c 100644
 --- a/netbpfload/NetBpfLoad.cpp
 +++ b/netbpfload/NetBpfLoad.cpp
-@@ -175,9 +175,11 @@ int main(int argc, char** argv, char * const envp[]) {
- 
-     const int device_api_level = android_get_device_api_level();
+@@ -242,6 +242,7 @@ int main(int argc, char** argv, char * const envp[]) {
+     const bool isAtLeastT = (device_api_level >= __ANDROID_API_T__);
      const bool isAtLeastU = (device_api_level >= __ANDROID_API_U__);
+     const bool isAtLeastV = (device_api_level >= __ANDROID_API_V__);
 +    bool failed = false;
  
-     if (!android::bpf::isAtLeastKernelVersion(4, 19, 0)) {
-         ALOGW("Android U QPR2 requires kernel 4.19.");
+     // last in U QPR2 beta1
+     const bool has_platform_bpfloader_rc = exists("/system/etc/init/bpfloader.rc");
+@@ -298,12 +299,12 @@ int main(int argc, char** argv, char * const envp[]) {
+ 
+     if (isAtLeastV && !android::bpf::isAtLeastKernelVersion(4, 19, 0)) {
+         ALOGE("Android V requires kernel 4.19.");
+-        return 1;
++        failed = true;
+     }
+ 
+     if (isAtLeastV && android::bpf::isX86() && !android::bpf::isKernel64Bit()) {
+         ALOGE("Android V requires X86 kernel to be 64-bit.");
+-        return 1;
 +        failed = true;
      }
  
      if (android::bpf::isUserspace32bit() && android::bpf::isAtLeastKernelVersion(6, 2, 0)) {
-@@ -201,14 +203,14 @@ int main(int argc, char** argv, char * const envp[]) {
+@@ -327,14 +328,14 @@ int main(int argc, char** argv, char * const envp[]) {
           * and 32-bit userspace on 64-bit kernel bpf ringbuffer compatibility is broken.
           */
          ALOGE("64-bit userspace required on 6.2+ kernels.");
@@ -111,13 +122,21 @@ index 236adde3da..98207e3f75 100644
      }
  
      if (isAtLeastU) {
-@@ -240,29 +242,22 @@ int main(int argc, char** argv, char * const envp[]) {
+@@ -366,7 +367,7 @@ int main(int argc, char** argv, char * const envp[]) {
      //  which could otherwise fail with ENOENT during object pinning or renaming,
      //  due to ordering issues)
      for (const auto& location : locations) {
 -        if (createSysFsBpfSubDir(location.prefix)) return 1;
 +        if (createSysFsBpfSubDir(location.prefix)) failed = true;
      }
+ 
+     // Note: there's no actual src dir for fs_bpf_loader .o's,
+@@ -374,28 +375,21 @@ int main(int argc, char** argv, char * const envp[]) {
+     // This is because this is primarily meant for triggering genfscon rules,
+     // and as such this will likely always be the case.
+     // Thus we need to manually create the /sys/fs/bpf/loader subdirectory.
+-    if (createSysFsBpfSubDir("loader")) return 1;
++    if (createSysFsBpfSubDir("loader")) failed = true;
  
      // Load all ELF objects, create programs and maps, and pin them
      for (const auto& location : locations) {
@@ -150,10 +169,10 @@ index 236adde3da..98207e3f75 100644
  
      ALOGI("done, transferring control to platform bpfloader.");
 diff --git a/service-t/native/libs/libnetworkstats/BpfNetworkStats.cpp b/service-t/native/libs/libnetworkstats/BpfNetworkStats.cpp
-index 31013972b8..8d6994818b 100644
+index d3e331ec81..541b8c8f01 100644
 --- a/service-t/native/libs/libnetworkstats/BpfNetworkStats.cpp
 +++ b/service-t/native/libs/libnetworkstats/BpfNetworkStats.cpp
-@@ -170,6 +170,7 @@ int parseBpfNetworkStatsDetail(std::vector<stats_line>* lines) {
+@@ -195,6 +195,7 @@ int parseBpfNetworkStatsDetail(std::vector<stats_line>* lines) {
      static BpfMapRO<uint32_t, uint32_t> configurationMap(CONFIGURATION_MAP_PATH);
      static BpfMap<StatsKey, StatsValue> statsMapA(STATS_MAP_A_PATH);
      static BpfMap<StatsKey, StatsValue> statsMapB(STATS_MAP_B_PATH);
@@ -162,10 +181,10 @@ index 31013972b8..8d6994818b 100644
      if (!configuration.ok()) {
          ALOGE("Cannot read the old configuration from map: %s",
 diff --git a/service-t/src/com/android/server/net/NetworkStatsService.java b/service-t/src/com/android/server/net/NetworkStatsService.java
-index 2c9f30c8f7..5471624368 100644
+index f7f133c5a1..90cc39040a 100644
 --- a/service-t/src/com/android/server/net/NetworkStatsService.java
 +++ b/service-t/src/com/android/server/net/NetworkStatsService.java
-@@ -427,12 +427,12 @@ public class NetworkStatsService extends INetworkStatsService.Stub {
+@@ -433,12 +433,12 @@ public class NetworkStatsService extends INetworkStatsService.Stub {
       * mActiveUidCounterSet to avoid accessing kernel too frequently.
       */
      private SparseIntArray mActiveUidCounterSet = new SparseIntArray();
@@ -184,10 +203,10 @@ index 2c9f30c8f7..5471624368 100644
  
      /** Data layer operation counters for splicing into other structures. */
      private NetworkStats mUidOperations = new NetworkStats(0L, 10);
-@@ -621,12 +621,16 @@ public class NetworkStatsService extends INetworkStatsService.Stub {
+@@ -629,12 +629,16 @@ public class NetworkStatsService extends INetworkStatsService.Stub {
+                 mNetworkStatsSubscriptionsMonitor);
          mLocationPermissionChecker = mDeps.makeLocationPermissionChecker(mContext);
-         mInterfaceMapUpdater = mDeps.makeBpfInterfaceMapUpdater(mContext, mHandler);
-         mInterfaceMapUpdater.start();
+         mInterfaceMapHelper = mDeps.makeBpfInterfaceMapHelper();
 -        mUidCounterSetMap = mDeps.getUidCounterSetMap();
 -        mCookieTagMap = mDeps.getCookieTagMap();
 -        mStatsMapA = mDeps.getStatsMapA();
@@ -207,7 +226,7 @@ index 2c9f30c8f7..5471624368 100644
          // To prevent any possible races, the flag is not allowed to change until rebooting.
          mSupportEventLogger = mDeps.supportEventLogger(mContext);
          if (mSupportEventLogger) {
-@@ -2450,6 +2454,7 @@ public class NetworkStatsService extends INetworkStatsService.Stub {
+@@ -2584,6 +2588,7 @@ public class NetworkStatsService extends INetworkStatsService.Stub {
       * @param uid
       */
      private void deleteKernelTagData(int uid) {
@@ -216,13 +235,13 @@ index 2c9f30c8f7..5471624368 100644
              mCookieTagMap.forEach((key, value) -> {
                  // If SkDestroyListener deletes the socket tag while this code is running,
 diff --git a/service/src/com/android/server/BpfNetMaps.java b/service/src/com/android/server/BpfNetMaps.java
-index ad9cfbe10e..9b2202b295 100644
+index a7fddd08f0..6f7b94c0e7 100644
 --- a/service/src/com/android/server/BpfNetMaps.java
 +++ b/service/src/com/android/server/BpfNetMaps.java
-@@ -358,7 +358,11 @@ public class BpfNetMaps {
+@@ -366,7 +366,11 @@ public class BpfNetMaps {
      @VisibleForTesting
      public BpfNetMaps(final Context context, final INetd netd, final Dependencies deps) {
-         if (!PRE_T) {
+         if (SdkLevel.isAtLeastT()) {
 -            ensureInitialized(context);
 +            try {
 +                ensureInitialized(context);
@@ -232,7 +251,7 @@ index ad9cfbe10e..9b2202b295 100644
          }
          mNetd = netd;
          mDeps = deps;
-@@ -794,6 +798,8 @@ public class BpfNetMaps {
+@@ -802,6 +806,8 @@ public class BpfNetMaps {
      public void swapActiveStatsMap() {
          throwIfPreT("swapActiveStatsMap is not available on pre-T devices");
  
@@ -241,7 +260,7 @@ index ad9cfbe10e..9b2202b295 100644
          try {
              synchronized (sCurrentStatsMapConfigLock) {
                  final long config = sConfigurationMap.getValue(
-@@ -834,6 +840,8 @@ public class BpfNetMaps {
+@@ -842,6 +848,8 @@ public class BpfNetMaps {
              return;
          }
  
@@ -250,7 +269,7 @@ index ad9cfbe10e..9b2202b295 100644
          // Remove the entry if package is uninstalled or uid has only INTERNET permission.
          if (permissions == PERMISSION_UNINSTALLED || permissions == PERMISSION_INTERNET) {
              for (final int uid : uids) {
-@@ -932,7 +940,9 @@ public class BpfNetMaps {
+@@ -940,7 +948,9 @@ public class BpfNetMaps {
          // deletion. netd and skDestroyListener could delete CookieTagMap entry concurrently.
          // So using Set to count the number of entry in the map.
          Set<K> keySet = new ArraySet<>();
@@ -262,10 +281,10 @@ index ad9cfbe10e..9b2202b295 100644
      }
  
 diff --git a/staticlibs/native/bpf_headers/include/bpf/BpfMap.h b/staticlibs/native/bpf_headers/include/bpf/BpfMap.h
-index 3fede3c0ed..8266ec68c0 100644
+index 1037bebf29..b8e8991c57 100644
 --- a/staticlibs/native/bpf_headers/include/bpf/BpfMap.h
 +++ b/staticlibs/native/bpf_headers/include/bpf/BpfMap.h
-@@ -58,21 +58,24 @@ class BpfMapRO {
+@@ -60,21 +60,24 @@ class BpfMapRO {
  
    protected:
      void abortOnMismatch(bool writable) const {

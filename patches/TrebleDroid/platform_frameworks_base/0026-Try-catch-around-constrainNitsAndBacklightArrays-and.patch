@@ -1,7 +1,7 @@
-From 23bd0dca8d53129dda7f4399662638905a35d001 Mon Sep 17 00:00:00 2001
+From 30016d6f8ffd199486d15a38cc7c4ff8172955bc Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Fri, 2 Jun 2023 19:19:31 -0400
-Subject: [PATCH 26/40] Try catch around constrainNitsAndBacklightArrays, and
+Subject: [PATCH 26/44] Try catch around constrainNitsAndBacklightArrays, and
  falls back to dumb curve. It crashes on Xperia 1 IV.
 
 ---

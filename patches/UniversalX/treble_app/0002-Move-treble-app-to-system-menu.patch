@@ -1,7 +1,7 @@
-From 92d40d5c5c195d72cfd0039bd7f784f4b9353f18 Mon Sep 17 00:00:00 2001
+From 9c824a54485c112f1308cf12d941ab9b74545fcc Mon Sep 17 00:00:00 2001
 From: ahnet-69 <syedmusicrealise@gmail.com>
 Date: Mon, 13 May 2024 10:25:26 +0000
-Subject: [PATCH 2/3] Move treble app to system menu
+Subject: [PATCH 2/2] Move treble app to system menu
 
 Co-Authored-By: ahnet-69 <www.rajsonu13@gmail.com>
 ---
@@ -9,10 +9,10 @@ Co-Authored-By: ahnet-69 <www.rajsonu13@gmail.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
-index ef63e20..a462e0a 100644
+index 25d3277..d1e06c9 100644
 --- a/app/src/main/AndroidManifest.xml
 +++ b/app/src/main/AndroidManifest.xml
-@@ -93,7 +93,8 @@
+@@ -92,7 +92,8 @@
                  <action android:name="com.android.settings.action.IA_SETTINGS"/>
                  <category android:name="android.intent.category.DEFAULT"/>
              </intent-filter>
