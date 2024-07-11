@@ -65,8 +65,10 @@ git clone https://android.googlesource.com/platform/prebuilts/vndk/v28 ./prebuil
 cd prebuilts/vndk/v28
 git reset --hard 204f1bad00aaf480ba33233f7b8c2ddaa03155dd
 cd ../../..
-
 apply "TrebleDroid"
+cd vendor/lineage
+git reset --hard FETCH_HEAD
+cd ../../
 apply "UniversalX"
 cd vendor/lineage
 git am --abort
@@ -76,7 +78,13 @@ apply "naz664"
 
 
 # Build treble app after applying patch
+wget https://download.oracle.com/java/17/archive/jdk-17.0.10_linux-x64_bin.tar.gz
+tar -xvf jdk-17.0.10_linux-x64_bin.tar.gz
+rm -rf jdk-17.0.10_linux-x64_bin.tar.gz
+export JAVA_HOME=$(pwd)/jdk-17.0.10
 cd treble_app
 bash build.sh release
 cp -v TrebleApp.apk ../vendor/hardware_overlay/TrebleApp/app.apk
 cd ..
+rm -rf jdk-17.0.10
+unset JAVA_HOME
