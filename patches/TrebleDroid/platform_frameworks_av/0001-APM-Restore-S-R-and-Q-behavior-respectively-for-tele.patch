@@ -1,7 +1,7 @@
-From 6dc7ac7c12a1fae6b0baeb5704871498ce2638e0 Mon Sep 17 00:00:00 2001
+From db3527b0b30cbce4872e2e80204cb845e3292b60 Mon Sep 17 00:00:00 2001
 From: Peter Cai <peter@typeblog.net>
 Date: Thu, 18 Aug 2022 15:44:46 -0400
-Subject: [PATCH 01/23] APM: Restore S, R and Q behavior respectively for
+Subject: [PATCH 01/24] APM: Restore S, R and Q behavior respectively for
  telephony audio
 
 This conditionally reverts part of b2e5cb (T), 51c9cc (S) and afd4ce (R)
@@ -36,7 +36,7 @@ Change-Id: I56d36d2aef4319935cb88a3e4771b23c6d5b2145
  2 files changed, 147 insertions(+), 62 deletions(-)
 
 diff --git a/services/audiopolicy/managerdefault/AudioPolicyManager.cpp b/services/audiopolicy/managerdefault/AudioPolicyManager.cpp
-index 40e0a89a5e..12a2f3dd23 100644
+index 3bebb1134a..1823522fe2 100644
 --- a/services/audiopolicy/managerdefault/AudioPolicyManager.cpp
 +++ b/services/audiopolicy/managerdefault/AudioPolicyManager.cpp
 @@ -699,6 +699,17 @@ status_t AudioPolicyManager::updateCallRoutingInternal(
@@ -148,7 +148,7 @@ index 40e0a89a5e..12a2f3dd23 100644
  bool AudioPolicyManager::isDeviceOfModule(
          const sp<DeviceDescriptor>& devDesc, const char *moduleId) const {
      sp<HwModule> module = mHwModules.getModuleFromName(moduleId);
-@@ -5211,83 +5275,101 @@ status_t AudioPolicyManager::createAudioPatchInternal(const struct audio_patch *
+@@ -5192,83 +5256,101 @@ status_t AudioPolicyManager::createAudioPatchInternal(const struct audio_patch *
                  // in config XML to reach the sink so that is can be declared as available.
                  audio_io_handle_t output = AUDIO_IO_HANDLE_NONE;
                  sp<SwAudioOutputDescriptor> outputDesc;

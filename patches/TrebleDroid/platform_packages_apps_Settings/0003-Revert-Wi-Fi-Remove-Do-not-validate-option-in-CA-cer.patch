@@ -1,4 +1,4 @@
-From 50a3a6ac1219568897f59ea2f9c3d247c419c529 Mon Sep 17 00:00:00 2001
+From 4ca52c15a44fa6fa2e9f5f60c6f47449fd1fc546 Mon Sep 17 00:00:00 2001
 From: TogoFire <italomellopereira@gmail.com>
 Date: Fri, 6 Aug 2021 08:54:07 -0300
 Subject: [PATCH 3/4] Revert "[Wi-Fi] Remove 'Do not validate' option in CA
@@ -50,7 +50,7 @@ index 3de1a38c3ea..5e179d1fc60 100644
                            android:layout_width="match_parent"
                            android:layout_height="wrap_content"
 diff --git a/res/values/strings.xml b/res/values/strings.xml
-index c3950afdfbf..93593bb4114 100644
+index ef93ba71132..0622daa859c 100644
 --- a/res/values/strings.xml
 +++ b/res/values/strings.xml
 @@ -2231,6 +2231,10 @@
@@ -186,7 +186,7 @@ index 5d45cb235b8..dc49850e7fa 100644
          }
  
 diff --git a/src/com/android/settings/wifi/WifiConfigController2.java b/src/com/android/settings/wifi/WifiConfigController2.java
-index d2680c7a58b..1c4c1662577 100644
+index 7c9b1d1b471..3114941e8d6 100644
 --- a/src/com/android/settings/wifi/WifiConfigController2.java
 +++ b/src/com/android/settings/wifi/WifiConfigController2.java
 @@ -177,6 +177,7 @@ public class WifiConfigController2 implements TextWatcher,

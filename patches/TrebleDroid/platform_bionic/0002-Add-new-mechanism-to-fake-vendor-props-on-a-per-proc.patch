@@ -1,4 +1,4 @@
-From 179067dc9e4ed8b4a71cf75ef434c400ba1c587f Mon Sep 17 00:00:00 2001
+From c89be47b786aa45ad3fbd9ba1ac201e43c6070ec Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Sat, 19 Feb 2022 08:20:25 -0500
 Subject: [PATCH 2/2] Add new mechanism to fake vendor props on a per-process
@@ -11,7 +11,7 @@ then ro.product.device/ro.product.manufacturer is read from vendor
  1 file changed, 85 insertions(+), 2 deletions(-)
 
 diff --git a/libc/system_properties/system_properties.cpp b/libc/system_properties/system_properties.cpp
-index e82367ba1..a72ca679c 100644
+index 9dd5e35ce..886bef127 100644
 --- a/libc/system_properties/system_properties.cpp
 +++ b/libc/system_properties/system_properties.cpp
 @@ -36,6 +36,8 @@
@@ -19,11 +19,11 @@ index e82367ba1..a72ca679c 100644
  #include <sys/types.h>
  #include <unistd.h>
 +#include <string.h>
-+#include <fnctl.h>
++#include <fcntl.h>
  
  #include <new>
  
-@@ -54,6 +56,85 @@
+@@ -53,6 +55,85 @@
  #define SERIAL_VALUE_LEN(serial) ((serial) >> 24)
  #define APPCOMPAT_PREFIX "ro.appcompat_override."
  
@@ -109,7 +109,7 @@ index e82367ba1..a72ca679c 100644
  static bool is_dir(const char* pathname) {
    struct stat info;
    if (stat(pathname, &info) == -1) {
-@@ -159,19 +240,21 @@ uint32_t SystemProperties::AreaSerial() {
+@@ -156,17 +237,19 @@ uint32_t SystemProperties::AreaSerial() {
  }
  
  const prop_info* SystemProperties::Find(const char* name) {
@@ -118,8 +118,6 @@ index e82367ba1..a72ca679c 100644
    if (!initialized_) {
      return nullptr;
    }
- 
-   pi_hooks.OnFind(&name);
  
 -  prop_area* pa = contexts_->GetPropAreaForName(name);
 +  prop_area* pa = contexts_->GetPropAreaForName(newName);
