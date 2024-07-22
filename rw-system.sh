@@ -615,6 +615,7 @@ if getprop ro.vendor.build.fingerprint | grep -iq -e Redmi/merlin; then
 fi
 
 if getprop ro.vendor.build.fingerprint | grep -iq -e Redmi/lancelot -e Redmi/galahad; then
+    setprop debug.renderengine.backend skiaglthreaded
     setprop debug.sf.use_phase_offsets_as_durations 1
     setprop debug.sf.late.sf.duration 27600000
     setprop debug.sf.late.app.duration 20000000
