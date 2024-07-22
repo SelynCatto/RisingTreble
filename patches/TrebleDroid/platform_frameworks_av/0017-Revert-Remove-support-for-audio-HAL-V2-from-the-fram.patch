@@ -1,4 +1,4 @@
-From 95b8aab31d075baf0e472db616141d2397268c06 Mon Sep 17 00:00:00 2001
+From 4f6bb155a1fef12671f1515d26c9905c4010af13 Mon Sep 17 00:00:00 2001
 From: Andy CrossGate Yan <GeForce8800Ultra@gmail.com>
 Date: Mon, 11 Oct 2021 16:10:42 -0400
 Subject: [PATCH 17/24] Revert "Remove support for audio HAL V2 from the
@@ -86,7 +86,7 @@ index 4d81f77d8e..23d7f0465b 100644
      name: "libaudiohal@5.0",
      defaults: [
 diff --git a/media/libaudiohal/impl/DeviceHalHidl.cpp b/media/libaudiohal/impl/DeviceHalHidl.cpp
-index 478e0f0026..a1b21d7d95 100644
+index ea4258c878..4d4e8a8717 100644
 --- a/media/libaudiohal/impl/DeviceHalHidl.cpp
 +++ b/media/libaudiohal/impl/DeviceHalHidl.cpp
 @@ -587,6 +587,7 @@ status_t DeviceHalHidl::setConnectedState(const struct audio_port_v7 *port, bool

@@ -1,4 +1,4 @@
-From ce509a6a4788e696de672d7d772853cc49c5b38e Mon Sep 17 00:00:00 2001
+From e32cc6409262b4d6db92fd3508ebd3d98138b544 Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Wed, 18 Oct 2023 17:44:59 -0400
 Subject: [PATCH] Don't crash when we get no DeviceLockManager

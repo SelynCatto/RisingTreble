@@ -1,4 +1,4 @@
-From b48eeef242b27b4e391723c8b24b2fc07b598a4a Mon Sep 17 00:00:00 2001
+From 452aade66e9b74a5ad6202c2590043e392beefee Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Sun, 28 Mar 2021 18:54:47 +0200
 Subject: [PATCH 15/24] Not all sources in a route are valid. Dont ignore the
@@ -10,7 +10,7 @@ Change-Id: If8a51740e71bef3a4738262ad7b43a337b0ec36d
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/services/audiopolicy/common/managerdefinitions/src/Serializer.cpp b/services/audiopolicy/common/managerdefinitions/src/Serializer.cpp
-index 6ee076660b..146c78b8f6 100644
+index 63c0879f4d..2607403d5d 100644
 --- a/services/audiopolicy/common/managerdefinitions/src/Serializer.cpp
 +++ b/services/audiopolicy/common/managerdefinitions/src/Serializer.cpp
 @@ -670,7 +670,7 @@ std::variant<status_t, RouteTraits::Element> PolicySerializer::deserialize<Route

@@ -1,0 +1,32 @@
+From 27306c16df9435704e0caa70df11aa7ff6af16d7 Mon Sep 17 00:00:00 2001
+From: Pierre-Hugues Husson <phh@phh.me>
+Date: Sun, 5 Apr 2020 16:32:46 +0200
+Subject: [PATCH 09/47] Always allow overriding the number of work profiles
+
+Change-Id: I6eb09aa71663c6fbe7563e3038bffcabdba0ff6a
+---
+ .../java/com/android/server/pm/UserManagerService.java    | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/services/core/java/com/android/server/pm/UserManagerService.java b/services/core/java/com/android/server/pm/UserManagerService.java
+index 5fd0a692cb8a..86cb9cf4914a 100644
+--- a/services/core/java/com/android/server/pm/UserManagerService.java
++++ b/services/core/java/com/android/server/pm/UserManagerService.java
+@@ -7895,12 +7895,8 @@ public class UserManagerService extends IUserManager.Stub {
+             // Allow at least MULTIPLE_WORK_PROFILES_MAX managed profiles when property is set.
+             return Math.max(defaultMax, MULTIPLE_WORK_PROFILES_MAX);
+         }
+-        if (!Build.IS_DEBUGGABLE) {
+-            return defaultMax;
+-        } else {
+-            if (userTypeDetails.isManagedProfile()) {
+-                return SystemProperties.getInt("persist.sys.max_profiles", defaultMax);
+-            }
++        if (userTypeDetails.isManagedProfile()) {
++            return SystemProperties.getInt("persist.sys.max_profiles", defaultMax);
+         }
+         return defaultMax;
+     }
+-- 
+2.34.1
+

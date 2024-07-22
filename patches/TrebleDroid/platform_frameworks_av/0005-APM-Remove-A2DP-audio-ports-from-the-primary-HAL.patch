@@ -1,4 +1,4 @@
-From ea43231276b613f5e02c155ca11846108e6a2df5 Mon Sep 17 00:00:00 2001
+From d7579e91d9044faf41e2910679321ed80a60132a Mon Sep 17 00:00:00 2001
 From: Peter Cai <peter@typeblog.net>
 Date: Thu, 25 Aug 2022 13:30:29 -0400
 Subject: [PATCH 05/24] APM: Remove A2DP audio ports from the primary HAL
@@ -16,7 +16,7 @@ Change-Id: I3305594a17285da113167b419543543f0ef71122
  1 file changed, 22 insertions(+), 4 deletions(-)
 
 diff --git a/services/audiopolicy/common/managerdefinitions/src/Serializer.cpp b/services/audiopolicy/common/managerdefinitions/src/Serializer.cpp
-index 29d36ca00b..839974b9d3 100644
+index 46288d021d..4990b93078 100644
 --- a/services/audiopolicy/common/managerdefinitions/src/Serializer.cpp
 +++ b/services/audiopolicy/common/managerdefinitions/src/Serializer.cpp
 @@ -26,6 +26,7 @@
@@ -40,7 +40,7 @@ index 29d36ca00b..839974b9d3 100644
              }
          }
          if (!xmlStrcmp(cur->name, reinterpret_cast<const xmlChar*>(Trait::tag))) {
-@@ -775,6 +773,7 @@ std::variant<status_t, ModuleTraits::Element> PolicySerializer::deserialize<Modu
+@@ -868,6 +866,7 @@ std::variant<status_t, ModuleTraits::Element> PolicySerializer::deserialize<Modu
          ALOGE("%s: No %s found", __func__, Attributes::name);
          return BAD_VALUE;
      }
@@ -48,7 +48,7 @@ index 29d36ca00b..839974b9d3 100644
      uint32_t versionMajor = 0, versionMinor = 0;
      std::string versionLiteral = getXmlAttribute(cur, Attributes::version);
      if (!versionLiteral.empty()) {
-@@ -800,6 +799,25 @@ std::variant<status_t, ModuleTraits::Element> PolicySerializer::deserialize<Modu
+@@ -893,6 +892,25 @@ std::variant<status_t, ModuleTraits::Element> PolicySerializer::deserialize<Modu
      if (status != NO_ERROR) {
          return status;
      }
