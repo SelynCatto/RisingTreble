@@ -1,7 +1,7 @@
-From 216bff3bfdee28bf287d27cd00f6fb17204edbe2 Mon Sep 17 00:00:00 2001
+From 6c79fef9902930a410958d844a139fc28fedd7e8 Mon Sep 17 00:00:00 2001
 From: wbs306 <wbs306@gmail.com>
 Date: Fri, 20 Jan 2023 17:07:41 +0800
-Subject: [PATCH 5/5] gd: hci: Ignore command READ_REMOTE_VERSION_INFORMATION
+Subject: [PATCH 6/6] gd: hci: Ignore command READ_REMOTE_VERSION_INFORMATION
  result if it doesn't in command_queue_
 
 In MTK Dimensity 8100 devices, com.android.bluetooth will gets crash if try to connect a new device.

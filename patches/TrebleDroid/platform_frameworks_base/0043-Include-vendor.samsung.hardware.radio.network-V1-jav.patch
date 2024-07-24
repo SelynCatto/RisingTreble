@@ -1,7 +1,7 @@
-From 2d4f7b161c10f859f536d314d882ab377a9008fd Mon Sep 17 00:00:00 2001
+From 5723b61076ca584dee318b39fc0107a715b4c8ce Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Wed, 21 Feb 2024 12:41:46 -0500
-Subject: [PATCH 43/47] Include vendor.samsung.hardware.radio.network-V1-java
+Subject: [PATCH 43/48] Include vendor.samsung.hardware.radio.network-V1-java
  in base libs, will be used by f/o/telephony
 
 ---

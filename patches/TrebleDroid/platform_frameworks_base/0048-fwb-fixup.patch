@@ -1,0 +1,48 @@
+From ce737727df48e6e27e412a20fcf5723948549194 Mon Sep 17 00:00:00 2001
+From: ItsLynix <lynixthewolf@gmail.com>
+Date: Mon, 22 Jul 2024 10:50:44 +0200
+Subject: [PATCH 48/48] fwb: fixup
+
+---
+ core/java/android/hardware/camera2/CameraManager.java       | 4 +---
+ services/core/java/com/android/server/wm/DisplayPolicy.java | 2 +-
+ 2 files changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/core/java/android/hardware/camera2/CameraManager.java b/core/java/android/hardware/camera2/CameraManager.java
+index 6ef48f058fd4..57eea09ab62a 100644
+--- a/core/java/android/hardware/camera2/CameraManager.java
++++ b/core/java/android/hardware/camera2/CameraManager.java
+@@ -2204,9 +2204,6 @@ public final class CameraManager {
+                             return s1.compareTo(s2);
+                         }
+                     }});
+-
+-        }
+-
+             // HAXX: Allow overriding default primary camera (assumed to be camera 0) via property
+             // Should match with libcameraservice/common/CameraProviderManager.cpp
+             int altPrimaryCamera = SystemProperties.getInt("persist.sys.alt_primary_camera", -1);
+@@ -2215,6 +2212,7 @@ public final class CameraManager {
+                 cameraIds[0] = cameraIds[altPrimaryCamera];
+                 cameraIds[altPrimaryCamera] = origPrimary;
+             }
++        }
+ 
+         public static boolean cameraStatusesContains(CameraStatus[] cameraStatuses, String id) {
+             for (CameraStatus c : cameraStatuses) {
+diff --git a/services/core/java/com/android/server/wm/DisplayPolicy.java b/services/core/java/com/android/server/wm/DisplayPolicy.java
+index 7ed019aefac5..5d358bd77036 100644
+--- a/services/core/java/com/android/server/wm/DisplayPolicy.java
++++ b/services/core/java/com/android/server/wm/DisplayPolicy.java
+@@ -506,7 +506,7 @@ public class DisplayPolicy {
+                     }
+                 }
+ 
+-                @Overrid
++                @Override
+                 public void onSwipeFromBottom() {
+                     synchronized (mLock) {
+                         requestTransientBars(mBottomGestureHost,
+-- 
+2.34.1
+

@@ -1,7 +1,7 @@
-From 9d92b76560506ca4170d872dc2df8b7662cfe06f Mon Sep 17 00:00:00 2001
+From dc7ed1d67885cccefa14fa5288212a2640d3fb56 Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Sun, 17 Oct 2021 17:17:13 -0400
-Subject: [PATCH 2/5] Don't abort when failing to get real-time priority
+Subject: [PATCH 2/6] Don't abort when failing to get real-time priority
 
 On some devices (like OP6), for unknown reason, trying to go to realtime
 fails with EPERM.

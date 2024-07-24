@@ -1,7 +1,7 @@
-From 13b28c90d5e4fd5d426cebc20149644f69e24bfd Mon Sep 17 00:00:00 2001
+From bb3da10d91bb9d240e586cb4b84058e8e5be30cc Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Mon, 29 Jan 2024 17:07:07 -0500
-Subject: [PATCH 40/47] Add Samsung sysinput
+Subject: [PATCH 40/48] Add Samsung sysinput
 
 ---
  services/core/Android.bp | 1 +
