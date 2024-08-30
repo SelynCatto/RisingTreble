@@ -1,4 +1,4 @@
-From 78063710f14ac8d9fffb79ea050e9ff9926eceec Mon Sep 17 00:00:00 2001
+From deec1d7231558483ad19a3f4631692c4e9357db3 Mon Sep 17 00:00:00 2001
 From: Peter Cai <peter@typeblog.net>
 Date: Wed, 24 Aug 2022 15:42:39 -0400
 Subject: [PATCH 04/24] APM: Optionally force-load audio policy for system-side
@@ -14,7 +14,7 @@ Change-Id: I279fff541a531f922f3fa55b8f14d00237db59ff
  1 file changed, 25 insertions(+)
 
 diff --git a/services/audiopolicy/common/managerdefinitions/src/Serializer.cpp b/services/audiopolicy/common/managerdefinitions/src/Serializer.cpp
-index c4e56d7746..46288d021d 100644
+index 1ab472f396..29d36ca00b 100644
 --- a/services/audiopolicy/common/managerdefinitions/src/Serializer.cpp
 +++ b/services/audiopolicy/common/managerdefinitions/src/Serializer.cpp
 @@ -25,6 +25,7 @@
@@ -25,7 +25,7 @@ index c4e56d7746..46288d021d 100644
  #include <utils/Log.h>
  #include <utils/StrongPointer.h>
  #include <utils/Errors.h>
-@@ -1081,6 +1082,30 @@ status_t PolicySerializer::deserialize(const char *configFile, AudioPolicyConfig
+@@ -988,6 +989,30 @@ status_t PolicySerializer::deserialize(const char *configFile, AudioPolicyConfig
      if (status != NO_ERROR) {
          return status;
      }

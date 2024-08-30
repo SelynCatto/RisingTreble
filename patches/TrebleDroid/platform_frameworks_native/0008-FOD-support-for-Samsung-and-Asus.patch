@@ -1,7 +1,7 @@
-From 15eae6738a76f4287b05fc10ae9877e6af6638fb Mon Sep 17 00:00:00 2001
+From 59048f78707c2eaaaecfb2212453aaf83487fd3c Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Sun, 18 Dec 2022 18:17:30 -0500
-Subject: [PATCH 08/13] FOD support for Samsung and Asus
+Subject: [PATCH 08/12] FOD support for Samsung and Asus
 
 ---
  libs/gui/BLASTBufferQueue.cpp                 | 20 ++++++++++++++--
@@ -65,10 +65,10 @@ index f317a2eea0..6a55bb3f70 100644
      static std::atomic<uint32_t> nextId = 0;
      mProducerId = nextId++;
 diff --git a/libs/ui/Gralloc2.cpp b/libs/ui/Gralloc2.cpp
-index 41306b51f6..3badc79606 100644
+index e9b5decee8..88cc90eec6 100644
 --- a/libs/ui/Gralloc2.cpp
 +++ b/libs/ui/Gralloc2.cpp
-@@ -115,7 +115,6 @@ status_t Gralloc2Mapper::validateBufferDescriptorInfo(
+@@ -108,7 +108,6 @@ status_t Gralloc2Mapper::validateBufferDescriptorInfo(
      if (descriptorInfo->usage & ~validUsageBits) {
          ALOGE("buffer descriptor contains invalid usage bits 0x%" PRIx64,
                descriptorInfo->usage & ~validUsageBits);
@@ -77,10 +77,10 @@ index 41306b51f6..3badc79606 100644
  
      // Gralloc2 implementations never understand non-BLOB with GPU_DATA_BUFFER
 diff --git a/libs/ui/Gralloc3.cpp b/libs/ui/Gralloc3.cpp
-index e9aa9c8d54..f29ce686c2 100644
+index 474d381dbb..8c6a5babd4 100644
 --- a/libs/ui/Gralloc3.cpp
 +++ b/libs/ui/Gralloc3.cpp
-@@ -106,7 +106,6 @@ status_t Gralloc3Mapper::validateBufferDescriptorInfo(
+@@ -99,7 +99,6 @@ status_t Gralloc3Mapper::validateBufferDescriptorInfo(
      if (descriptorInfo->usage & ~validUsageBits) {
          ALOGE("buffer descriptor contains invalid usage bits 0x%" PRIx64,
                descriptorInfo->usage & ~validUsageBits);
@@ -89,10 +89,10 @@ index e9aa9c8d54..f29ce686c2 100644
  
      // Gralloc3 implementations never understand non-BLOB with GPU_DATA_BUFFER
 diff --git a/libs/ui/Gralloc4.cpp b/libs/ui/Gralloc4.cpp
-index f1322f1e4c..c3ff48a262 100644
+index 03ff58a76c..c8b055f80b 100644
 --- a/libs/ui/Gralloc4.cpp
 +++ b/libs/ui/Gralloc4.cpp
-@@ -129,7 +129,6 @@ static status_t validateBufferDescriptorInfo(IMapper::BufferDescriptorInfo* desc
+@@ -122,7 +122,6 @@ static status_t validateBufferDescriptorInfo(IMapper::BufferDescriptorInfo* desc
      if (descriptorInfo->usage & ~validUsageBits) {
          ALOGE("buffer descriptor contains invalid usage bits 0x%" PRIx64,
                descriptorInfo->usage & ~validUsageBits);
@@ -101,10 +101,10 @@ index f1322f1e4c..c3ff48a262 100644
  
      // Combinations that are only allowed with gralloc 4.1.
 diff --git a/services/surfaceflinger/CompositionEngine/src/OutputLayer.cpp b/services/surfaceflinger/CompositionEngine/src/OutputLayer.cpp
-index 408c58cc6e..fe6b17ffa0 100644
+index 7fe3369f88..afd9942d5e 100644
 --- a/services/surfaceflinger/CompositionEngine/src/OutputLayer.cpp
 +++ b/services/surfaceflinger/CompositionEngine/src/OutputLayer.cpp
-@@ -27,6 +27,7 @@
+@@ -26,6 +26,7 @@
  #include "system/graphics-base-v1.0.h"
  
  #include <ui/HdrRenderTypeUtils.h>
@@ -112,7 +112,7 @@ index 408c58cc6e..fe6b17ffa0 100644
  
  // TODO(b/129481165): remove the #pragma below and fix conversion issues
  #pragma clang diagnostic push
-@@ -37,6 +38,9 @@
+@@ -36,6 +37,9 @@
  // TODO(b/129481165): remove the #pragma below and fix conversion issues
  #pragma clang diagnostic pop // ignored "-Wconversion"
  
@@ -150,10 +150,10 @@ index 408c58cc6e..fe6b17ffa0 100644
            displayFrame.right, displayFrame.bottom);
  
 diff --git a/services/surfaceflinger/DisplayHardware/AidlComposerHal.cpp b/services/surfaceflinger/DisplayHardware/AidlComposerHal.cpp
-index 362ab9c39e..62c2ed8f8d 100644
+index 64a8ae7fcd..b7da02cdcc 100644
 --- a/services/surfaceflinger/DisplayHardware/AidlComposerHal.cpp
 +++ b/services/surfaceflinger/DisplayHardware/AidlComposerHal.cpp
-@@ -1686,5 +1686,13 @@ void AidlComposer::addDisplay(Display display) {
+@@ -1680,5 +1680,13 @@ void AidlComposer::addDisplay(Display display) {
  void AidlComposer::onHotplugConnect(Display display) {
      addDisplay(display);
  }
@@ -195,10 +195,10 @@ index bc067a0e5d..c0fcff6a7d 100644
  
  } // namespace Hwc2
 diff --git a/services/surfaceflinger/DisplayHardware/HWC2.cpp b/services/surfaceflinger/DisplayHardware/HWC2.cpp
-index 8c0f81e051..ac14c0b78b 100644
+index 24a9e22a2b..52777b1e74 100644
 --- a/services/surfaceflinger/DisplayHardware/HWC2.cpp
 +++ b/services/surfaceflinger/DisplayHardware/HWC2.cpp
-@@ -1037,6 +1037,14 @@ Error Layer::setBlockingRegion(const Region& region) {
+@@ -1014,6 +1014,14 @@ Error Layer::setBlockingRegion(const Region& region) {
      return static_cast<Error>(intError);
  }
  
@@ -214,10 +214,10 @@ index 8c0f81e051..ac14c0b78b 100644
  } // namespace HWC2
  } // namespace android
 diff --git a/services/surfaceflinger/DisplayHardware/HWC2.h b/services/surfaceflinger/DisplayHardware/HWC2.h
-index 5b948318ae..bb55f0e695 100644
+index f907061774..04513ae0fe 100644
 --- a/services/surfaceflinger/DisplayHardware/HWC2.h
 +++ b/services/surfaceflinger/DisplayHardware/HWC2.h
-@@ -354,6 +354,9 @@ public:
+@@ -349,6 +349,9 @@ public:
      // AIDL HAL
      [[nodiscard]] virtual hal::Error setBrightness(float brightness) = 0;
      [[nodiscard]] virtual hal::Error setBlockingRegion(const android::Region& region) = 0;
@@ -227,7 +227,7 @@ index 5b948318ae..bb55f0e695 100644
  };
  
  namespace impl {
-@@ -405,6 +408,8 @@ public:
+@@ -400,6 +403,8 @@ public:
      hal::Error setBrightness(float brightness) override;
      hal::Error setBlockingRegion(const android::Region& region) override;
  
@@ -237,10 +237,10 @@ index 5b948318ae..bb55f0e695 100644
      // These are references to data owned by HWComposer, which will outlive
      // this HWC2::Layer, so these references are guaranteed to be valid for
 diff --git a/services/surfaceflinger/DisplayHardware/HidlComposerHal.cpp b/services/surfaceflinger/DisplayHardware/HidlComposerHal.cpp
-index 12ab2c284a..d34ed04127 100644
+index c4ff9cc6be..bd158ad5ad 100644
 --- a/services/surfaceflinger/DisplayHardware/HidlComposerHal.cpp
 +++ b/services/surfaceflinger/DisplayHardware/HidlComposerHal.cpp
-@@ -1435,6 +1435,13 @@ Error HidlComposer::getPhysicalDisplayOrientation(Display, AidlTransform*) {
+@@ -1434,6 +1434,13 @@ Error HidlComposer::getPhysicalDisplayOrientation(Display, AidlTransform*) {
                       "OptionalFeature::PhysicalDisplayOrientation is not supported on HIDL");
  }
  
