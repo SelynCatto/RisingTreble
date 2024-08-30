@@ -1,7 +1,7 @@
-From 70160ebb6a27f0175dcf7e9fd8d0c0ab50bdd374 Mon Sep 17 00:00:00 2001
+From bcb758a2532a87bddc2a78de591db509ddaec092 Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Thu, 17 May 2018 20:28:35 +0200
-Subject: [PATCH 05/53] Don't crash if there is IR HAL is not declared
+Subject: [PATCH 05/49] Don't crash if there is IR HAL is not declared
 
 Change-Id: I3afded27441bbee8244d5fda544b3e6d1238dc1b
 ---
@@ -10,7 +10,7 @@ Change-Id: I3afded27441bbee8244d5fda544b3e6d1238dc1b
  2 files changed, 1 insertion(+), 9 deletions(-)
 
 diff --git a/services/core/java/com/android/server/ConsumerIrService.java b/services/core/java/com/android/server/ConsumerIrService.java
-index ee6d808aa549..be8e2bb95ece 100644
+index ee6d808aa..be8e2bb95 100644
 --- a/services/core/java/com/android/server/ConsumerIrService.java
 +++ b/services/core/java/com/android/server/ConsumerIrService.java
 @@ -53,14 +53,6 @@ public class ConsumerIrService extends IConsumerIrService.Stub {
@@ -29,7 +29,7 @@ index ee6d808aa549..be8e2bb95ece 100644
  
      @Override
 diff --git a/services/core/jni/com_android_server_ConsumerIrService.cpp b/services/core/jni/com_android_server_ConsumerIrService.cpp
-index 63daa3503bd5..d068ec06fc14 100644
+index 63daa3503..d068ec06f 100644
 --- a/services/core/jni/com_android_server_ConsumerIrService.cpp
 +++ b/services/core/jni/com_android_server_ConsumerIrService.cpp
 @@ -36,7 +36,7 @@ static sp<IConsumerIr> mHal;
@@ -42,5 +42,5 @@ index 63daa3503bd5..d068ec06fc14 100644
  }
  
 -- 
-2.34.1
+2.39.2
 

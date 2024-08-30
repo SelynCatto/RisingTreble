@@ -1,4 +1,4 @@
-From a464342a983c1bbdfdc8fe50803a7e35659ecb22 Mon Sep 17 00:00:00 2001
+From a13aa3a91b13fb93a13292594544bdc23d1d413d Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Thu, 20 Jul 2023 14:21:21 -0400
 Subject: [PATCH 09/10] Allow /sys/vm/watermark_scale_factor conflict -- seen
@@ -9,7 +9,7 @@ Subject: [PATCH 09/10] Allow /sys/vm/watermark_scale_factor conflict -- seen
  1 file changed, 9 insertions(+)
 
 diff --git a/libsepol/cil/src/cil_post.c b/libsepol/cil/src/cil_post.c
-index 7f614c03..1703b3b6 100644
+index 7f614c0..1703b3b 100644
 --- a/libsepol/cil/src/cil_post.c
 +++ b/libsepol/cil/src/cil_post.c
 @@ -502,6 +502,15 @@ static int cil_post_genfscon_context_compare(const void *a, const void *b)
@@ -29,5 +29,5 @@ index 7f614c03..1703b3b6 100644
              if(strcmp(a_genfscon->path_str, "/") == 0)
                  bypass = 1;
 -- 
-2.34.1
+2.39.2
 
