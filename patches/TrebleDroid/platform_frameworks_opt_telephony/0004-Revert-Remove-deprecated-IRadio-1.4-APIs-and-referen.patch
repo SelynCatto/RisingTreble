@@ -1,4 +1,4 @@
-From e5d814ecb586c0b02c59f178d0da6c161c32626a Mon Sep 17 00:00:00 2001
+From b7c3f8f22027a0a2f91fd3f4914240896205408d Mon Sep 17 00:00:00 2001
 From: Daniel Zhang <danielzhang130@gmail.com>
 Date: Sat, 30 Mar 2024 14:05:14 -0400
 Subject: [PATCH 04/14] Revert "Remove deprecated IRadio <1.4 APIs and
@@ -9,7 +9,7 @@ This reverts commit 67a3837ed4d5e76369316d713b9ac52dbc5518aa.
 Change-Id: I6802400fb4ffcf0181441662c267f9eabc4e5cf7
 ---
  .../internal/telephony/BaseCommands.java      |  25 +++
- .../internal/telephony/CommandsInterface.java | 138 +++++++++++++++-
+ .../internal/telephony/CommandsInterface.java | 141 +++++++++++++++-
  .../internal/telephony/GsmCdmaPhone.java      |   2 +
  .../com/android/internal/telephony/Phone.java |  73 +++++++++
  .../com/android/internal/telephony/RIL.java   | 112 ++++++++++++-
@@ -17,12 +17,12 @@ Change-Id: I6802400fb4ffcf0181441662c267f9eabc4e5cf7
  .../imsphone/ImsPhoneCommandInterface.java    |  64 +++++++-
  .../telephony/uicc/UiccController.java        |   7 +-
  .../internal/telephony/GsmCdmaPhoneTest.java  |   5 +
- .../android/internal/telephony/RILTest.java   |  67 +++++++-
- .../internal/telephony/SimulatedCommands.java | 153 ++++++++++++++++--
+ .../android/internal/telephony/RILTest.java   |  68 +++++++-
+ .../internal/telephony/SimulatedCommands.java | 154 ++++++++++++++++--
  .../telephony/SimulatedCommandsVerifier.java  |  84 +++++++++-
- .../data/DataServiceManagerTest.java          |  10 +-
+ .../data/DataServiceManagerTest.java          |  12 +-
  .../telephony/uicc/UiccControllerTest.java    |  34 ++++
- 14 files changed, 735 insertions(+), 56 deletions(-)
+ 14 files changed, 740 insertions(+), 58 deletions(-)
 
 diff --git a/src/java/com/android/internal/telephony/BaseCommands.java b/src/java/com/android/internal/telephony/BaseCommands.java
 index 6f66545..5406655 100644
@@ -75,7 +75,7 @@ index 6f66545..5406655 100644
      public void registerForLceInfo(Handler h, int what, Object obj) {
          synchronized (mStateMonitor) {
 diff --git a/src/java/com/android/internal/telephony/CommandsInterface.java b/src/java/com/android/internal/telephony/CommandsInterface.java
-index ee7447c..3046df6 100644
+index ee7447c..0f0455f 100644
 --- a/src/java/com/android/internal/telephony/CommandsInterface.java
 +++ b/src/java/com/android/internal/telephony/CommandsInterface.java
 @@ -898,6 +898,18 @@ public interface CommandsInterface {
@@ -123,10 +123,11 @@ index ee7447c..3046df6 100644
      /**
       * Hang up one individual connection.
       *  returned message
-@@ -1070,6 +1101,24 @@ public interface CommandsInterface {
+@@ -1070,6 +1101,25 @@ public interface CommandsInterface {
       */
      void getLastCallFailCause (Message result);
  
++
 +    /**
 +     * Reason for last PDP context deactivate or failure to activate
 +     * cause code returned as int[0] in Message.obj.response
@@ -148,7 +149,7 @@ index ee7447c..3046df6 100644
      void setMute (boolean enableMute, Message response);
  
      void getMute (Message response);
-@@ -1498,6 +1547,8 @@ public interface CommandsInterface {
+@@ -1498,6 +1548,8 @@ public interface CommandsInterface {
       */
      void cancelPendingUssd (Message response);
  
@@ -157,7 +158,7 @@ index ee7447c..3046df6 100644
      /**
       * Assign a specified band for RF configuration.
       *
-@@ -1628,14 +1679,28 @@ public interface CommandsInterface {
+@@ -1628,14 +1680,28 @@ public interface CommandsInterface {
      @UnsupportedAppUsage
      void reportStkServiceIsRunning(Message result);
  
@@ -188,7 +189,15 @@ index ee7447c..3046df6 100644
  
      /**
       * Send TERMINAL RESPONSE to the SIM, after processing a proactive command
-@@ -1825,6 +1890,8 @@ public interface CommandsInterface {
+@@ -1818,13 +1884,15 @@ public interface CommandsInterface {
+     void queryTTYMode(Message response);
+ 
+     /**
+-     * Setup a packet data connection. On successful completion, the result
++     * Setup a packet data connection On successful completion, the result
+      * message will return a SetupDataResult object containing the connection information.
+      *
+      * @param accessNetworkType
       *            Access network to use. Values is one of AccessNetworkConstants.AccessNetworkType.
       * @param dataProfile
       *            Data profile for data call setup
@@ -197,7 +206,7 @@ index ee7447c..3046df6 100644
       * @param allowRoaming
       *            Flag indicating data roaming is enabled or not
       * @param reason
-@@ -1855,9 +1922,9 @@ public interface CommandsInterface {
+@@ -1855,9 +1923,9 @@ public interface CommandsInterface {
       * @param result
       *            Callback message
       */
@@ -210,7 +219,7 @@ index ee7447c..3046df6 100644
              boolean matchAllRuleAllowed, Message result);
  
      /**
-@@ -1918,6 +1985,22 @@ public interface CommandsInterface {
+@@ -1918,6 +1986,22 @@ public interface CommandsInterface {
      @UnsupportedAppUsage
      public void getIccCardStatus(Message result);
  
@@ -233,7 +242,7 @@ index ee7447c..3046df6 100644
      /**
       * Request the SIM application on the UICC to perform authentication
       * challenge/response algorithm. The data string and challenge response are
-@@ -1995,20 +2078,24 @@ public interface CommandsInterface {
+@@ -1995,20 +2079,24 @@ public interface CommandsInterface {
       *
       * @param dataProfile
       *            data profile for initial APN attach
@@ -260,7 +269,7 @@ index ee7447c..3046df6 100644
  
      /**
       * Notifiy that we are testing an emergency call
-@@ -2172,6 +2259,15 @@ public interface CommandsInterface {
+@@ -2172,6 +2260,15 @@ public interface CommandsInterface {
      public void setUiccSubscription(int slotId, int appIndex, int subId, int subStatus,
              Message result);
  
@@ -276,7 +285,7 @@ index ee7447c..3046df6 100644
      /**
       * Tells the modem if data is allowed or not.
       *
-@@ -2225,6 +2321,34 @@ public interface CommandsInterface {
+@@ -2225,6 +2322,34 @@ public interface CommandsInterface {
       */
      public void unregisterForRadioCapabilityChanged(Handler h);
  
@@ -893,7 +902,7 @@ index 9f96ce4..17dcac5 100644
          // EVENT_RADIO_ON
          verify(mSimulatedCommandsVerifier, times(2)).getVoiceRadioTechnology(
 diff --git a/tests/telephonytests/src/com/android/internal/telephony/RILTest.java b/tests/telephonytests/src/com/android/internal/telephony/RILTest.java
-index bfe9649..28d75b2 100644
+index bfe9649..b285f0f 100644
 --- a/tests/telephonytests/src/com/android/internal/telephony/RILTest.java
 +++ b/tests/telephonytests/src/com/android/internal/telephony/RILTest.java
 @@ -64,6 +64,7 @@ import static com.android.internal.telephony.RILConstants.RIL_REQUEST_NV_READ_IT
@@ -923,7 +932,15 @@ index bfe9649..28d75b2 100644
  import android.hardware.radio.V1_0.GsmSmsMessage;
  import android.hardware.radio.V1_0.ImsSmsMessage;
  import android.hardware.radio.V1_0.NvWriteItem;
-@@ -515,7 +519,11 @@ public class RILTest extends TelephonyTest {
+@@ -497,6 +501,7 @@ public class RILTest extends TelephonyTest {
+     @FlakyTest
+     @Test
+     public void testSupplySimDepersonalization() throws Exception {
++
+         String controlKey = "1234";
+         PersoSubState persoType = PersoSubState.PERSOSUBSTATE_SIM_NETWORK_PUK;
+ 
+@@ -515,7 +520,11 @@ public class RILTest extends TelephonyTest {
          mRILUnderTest.supplySimDepersonalization(persoType, controlKey, obtainMessage());
          verify(mRadioProxy).supplySimDepersonalization(
                  mSerialNumberCaptor.capture(),
@@ -936,7 +953,7 @@ index bfe9649..28d75b2 100644
                  eq(controlKey));
          verifyRILResponse(
                  mRILUnderTest,
-@@ -549,7 +557,11 @@ public class RILTest extends TelephonyTest {
+@@ -549,7 +558,11 @@ public class RILTest extends TelephonyTest {
          mRILUnderTest.supplySimDepersonalization(persoType, controlKey, obtainMessage());
          verify(mRadioProxy).supplySimDepersonalization(
                  mSerialNumberCaptor.capture(),
@@ -949,7 +966,7 @@ index bfe9649..28d75b2 100644
                  eq(controlKey));
          verifyRILResponse(
                  mRILUnderTest,
-@@ -1143,11 +1155,18 @@ public class RILTest extends TelephonyTest {
+@@ -1143,11 +1156,18 @@ public class RILTest extends TelephonyTest {
                  .setApnSetting(apnSetting)
                  .setPreferred(false)
                  .build();
@@ -971,7 +988,7 @@ index bfe9649..28d75b2 100644
          verifyRILResponse(
                  mRILUnderTest, mSerialNumberCaptor.getValue(), RIL_REQUEST_SET_INITIAL_ATTACH_APN);
      }
-@@ -1288,7 +1307,11 @@ public class RILTest extends TelephonyTest {
+@@ -1288,7 +1308,11 @@ public class RILTest extends TelephonyTest {
          mRILUnderTest.nvResetConfig(resetType, obtainMessage());
          verify(mRadioProxy).nvResetConfig(
                  mSerialNumberCaptor.capture(),
@@ -984,7 +1001,7 @@ index bfe9649..28d75b2 100644
          verifyRILResponse(
                  mRILUnderTest, mSerialNumberCaptor.getValue(), RIL_REQUEST_NV_RESET_CONFIG);
      }
-@@ -1341,6 +1364,33 @@ public class RILTest extends TelephonyTest {
+@@ -1341,6 +1365,33 @@ public class RILTest extends TelephonyTest {
                  mRILUnderTest, mSerialNumberCaptor.getValue(), RIL_REQUEST_GET_RADIO_CAPABILITY);
      }
  
@@ -1018,7 +1035,7 @@ index bfe9649..28d75b2 100644
      @FlakyTest
      @Test
      public void testGetModemActivityInfo() throws Exception {
-@@ -2580,8 +2630,9 @@ public class RILTest extends TelephonyTest {
+@@ -2580,8 +2631,9 @@ public class RILTest extends TelephonyTest {
                  .setPreferred(false)
                  .build();
  
@@ -1031,7 +1048,7 @@ index bfe9649..28d75b2 100644
          verify(mDataProxy).setupDataCall(mSerialNumberCaptor.capture(),
                  eq(AccessNetworkConstants.AccessNetworkType.EUTRAN), dpiCaptor.capture(),
 diff --git a/tests/telephonytests/src/com/android/internal/telephony/SimulatedCommands.java b/tests/telephonytests/src/com/android/internal/telephony/SimulatedCommands.java
-index 39c0cac..ed1b265 100644
+index 39c0cac..e56b0a8 100644
 --- a/tests/telephonytests/src/com/android/internal/telephony/SimulatedCommands.java
 +++ b/tests/telephonytests/src/com/android/internal/telephony/SimulatedCommands.java
 @@ -77,6 +77,7 @@ import com.android.internal.telephony.uicc.AdnCapacity;
@@ -1104,8 +1121,8 @@ index 39c0cac..ed1b265 100644
      @Override
      public void supplyIccPin(String pin, Message result)  {
          if (mSimLockedState != SimLockState.REQUIRE_PIN) {
-@@ -528,6 +554,15 @@ public class SimulatedCommands extends BaseCommands
-         unimplemented(result);
+@@ -549,6 +575,15 @@ public class SimulatedCommands extends BaseCommands
+         }
      }
  
 +    /**
@@ -1203,10 +1220,11 @@ index 39c0cac..ed1b265 100644
  
          if (mSetupDataCallResult == null) {
              try {
-@@ -1539,6 +1624,20 @@ public class SimulatedCommands extends BaseCommands
+@@ -1539,6 +1624,21 @@ public class SimulatedCommands extends BaseCommands
          resultSuccess(response, null);
      }
  
++
 +    @Override
 +    public void resetRadio(Message result) {
 +        unimplemented(result);
@@ -1224,7 +1242,7 @@ index 39c0cac..ed1b265 100644
      @Override
      public void setCarrierInfoForImsiEncryption(ImsiEncryptionInfo imsiEncryptionInfo,
                                                  Message response) {
-@@ -1549,6 +1648,15 @@ public class SimulatedCommands extends BaseCommands
+@@ -1549,6 +1649,15 @@ public class SimulatedCommands extends BaseCommands
          }
      }
  
@@ -1240,7 +1258,7 @@ index 39c0cac..ed1b265 100644
      //***** SimulatedRadioControl
  
  
-@@ -2010,14 +2118,14 @@ public class SimulatedCommands extends BaseCommands
+@@ -2010,14 +2119,14 @@ public class SimulatedCommands extends BaseCommands
      }
  
      @Override
@@ -1259,7 +1277,7 @@ index 39c0cac..ed1b265 100644
          resultSuccess(result, null);
      }
  
-@@ -2121,6 +2229,22 @@ public class SimulatedCommands extends BaseCommands
+@@ -2121,6 +2230,22 @@ public class SimulatedCommands extends BaseCommands
          setRadioState(TelephonyManager.RADIO_POWER_UNAVAILABLE, false /* forceNotifyRegistrants */);
      }
  
@@ -1282,7 +1300,7 @@ index 39c0cac..ed1b265 100644
      @Override
      public void registerForLceInfo(Handler h, int what, Object obj) {
          SimulatedCommandsVerifier.getInstance().registerForLceInfo(h, what, obj);
-@@ -2439,6 +2563,15 @@ public class SimulatedCommands extends BaseCommands
+@@ -2439,6 +2564,15 @@ public class SimulatedCommands extends BaseCommands
                  new ReceivedPhonebookRecords(4, phonebookRecordInfoGroup), null));
      }
  
@@ -1454,13 +1472,22 @@ index 6fc5616..1883513 100644
      public void registerForLceInfo(Handler h, int what, Object obj) {
  
 diff --git a/tests/telephonytests/src/com/android/internal/telephony/data/DataServiceManagerTest.java b/tests/telephonytests/src/com/android/internal/telephony/data/DataServiceManagerTest.java
-index 30f49ad..131ef08 100644
+index 30f49ad..8b6ccfc 100644
 --- a/tests/telephonytests/src/com/android/internal/telephony/data/DataServiceManagerTest.java
 +++ b/tests/telephonytests/src/com/android/internal/telephony/data/DataServiceManagerTest.java
 @@ -155,7 +155,7 @@ public class DataServiceManagerTest extends TelephonyTest {
                  message);
          waitAndVerifyResult(message, DataServiceCallback.RESULT_SUCCESS);
          verify(mSimulatedCommandsVerifier).setupDataCall(anyInt(), any(DataProfile.class),
+-                anyBoolean(), anyInt(), any(), anyInt(), any(), any(), anyBoolean(),
++                anyBoolean(), anyBoolean(), anyInt(), any(), anyInt(), any(), any(), anyBoolean(),
+                 any(Message.class));
+     }
+ 
+@@ -168,7 +168,7 @@ public class DataServiceManagerTest extends TelephonyTest {
+                 message);
+         waitAndVerifyResult(message, DataServiceCallback.RESULT_ERROR_ILLEGAL_STATE);
+         verify(mSimulatedCommandsVerifier, never()).setupDataCall(anyInt(), any(DataProfile.class),
 -                anyBoolean(), anyInt(), any(), anyInt(), any(), any(), anyBoolean(),
 +                anyBoolean(), anyBoolean(), anyInt(), any(), anyInt(), any(), any(), anyBoolean(),
                  any(Message.class));
@@ -1503,10 +1530,10 @@ index 30f49ad..131ef08 100644
  
      @Test
 diff --git a/tests/telephonytests/src/com/android/internal/telephony/uicc/UiccControllerTest.java b/tests/telephonytests/src/com/android/internal/telephony/uicc/UiccControllerTest.java
-index 9265a62..6d8f107 100644
+index 9265a62..2ab23f3 100644
 --- a/tests/telephonytests/src/com/android/internal/telephony/uicc/UiccControllerTest.java
 +++ b/tests/telephonytests/src/com/android/internal/telephony/uicc/UiccControllerTest.java
-@@ -396,6 +396,40 @@ public class UiccControllerTest extends TelephonyTest {
+@@ -495,6 +495,40 @@ public class UiccControllerTest extends TelephonyTest {
          assertEquals(uiccCardInfo, mUiccControllerUT.getAllUiccCardInfos().get(0));
      }
  
@@ -1544,9 +1571,9 @@ index 9265a62..6d8f107 100644
 +        mSimulatedCommands.setSupportsEid(true);
 +    }
 +
-     @Test
-     public void testIccidWithTrailingF() {
-         // Give UiccController a real context so it can use shared preferences
+     /**
+      * The default eUICC should not be the removable slot if there is a built-in eUICC.
+      */
 -- 
 2.39.2
 

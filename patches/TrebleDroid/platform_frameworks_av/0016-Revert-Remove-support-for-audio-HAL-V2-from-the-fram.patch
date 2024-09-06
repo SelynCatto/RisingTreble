@@ -1,4 +1,4 @@
-From 0286a3b7b99b81d870e5ceb1886257fa6404223d Mon Sep 17 00:00:00 2001
+From 156d04dceb39e7d94cff98cf560011ddc9072667 Mon Sep 17 00:00:00 2001
 From: Andy CrossGate Yan <GeForce8800Ultra@gmail.com>
 Date: Mon, 11 Oct 2021 16:10:42 -0400
 Subject: [PATCH 16/23] Revert "Remove support for audio HAL V2 from the

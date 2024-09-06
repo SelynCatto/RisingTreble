@@ -1,4 +1,4 @@
-From 36c9ff78849858d7c3a5cd16b2d273b9c4c5b215 Mon Sep 17 00:00:00 2001
+From 684b365356e8db280eaed020d1c208eed139cbd1 Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Mon, 30 Oct 2023 19:25:27 -0400
 Subject: [PATCH 39/49] Add a prop to use linear backlight control

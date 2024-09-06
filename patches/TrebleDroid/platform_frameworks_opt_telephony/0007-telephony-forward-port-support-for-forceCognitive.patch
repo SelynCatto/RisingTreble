@@ -1,4 +1,4 @@
-From d6d79c56e63ee1e35af6f2d850b6c53f464a68ab Mon Sep 17 00:00:00 2001
+From 9de28e2d31e7a403c76db1da79cf39b49781a81a Mon Sep 17 00:00:00 2001
 From: corneranchu <corneranchu@gmail.com>
 Date: Sat, 1 Oct 2022 01:49:58 +0000
 Subject: [PATCH 07/14] telephony: forward-port support for forceCognitive

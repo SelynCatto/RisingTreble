@@ -1,4 +1,4 @@
-From 7805e9c8ca8d8ddece20cb69ff991d77b2ecf8f4 Mon Sep 17 00:00:00 2001
+From 42b682a082288e5fd76f47abe14c319c1da32561 Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Sat, 3 Dec 2022 17:13:24 -0500
 Subject: [PATCH 26/49] Set old fingerprint sensors to security "strong"
@@ -11,7 +11,7 @@ despite its name, config_biometric_sensors is HIDL-specific
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/services/core/java/com/android/server/biometrics/AuthService.java b/services/core/java/com/android/server/biometrics/AuthService.java
-index 755b64e97..eef5e79e4 100644
+index f8ad9acc2..0acbf633e 100644
 --- a/services/core/java/com/android/server/biometrics/AuthService.java
 +++ b/services/core/java/com/android/server/biometrics/AuthService.java
 @@ -765,7 +765,7 @@ public class AuthService extends SystemService {
@@ -23,7 +23,7 @@ index 755b64e97..eef5e79e4 100644
                  // For backwards compatibility with R where biometrics could work without being
                  // configured in config_biometric_sensors. In the absence of a vendor provided
                  // configuration, we assume the weakest biometric strength (i.e. convenience).
-@@ -927,7 +927,7 @@ public class AuthService extends SystemService {
+@@ -943,7 +943,7 @@ public class AuthService extends SystemService {
          if (pm.hasSystemFeature(PackageManager.FEATURE_FACE)) {
              modalities.add(String.valueOf(BiometricAuthenticator.TYPE_FACE));
          }

@@ -1,4 +1,4 @@
-From 971ef109420e0b22a5097bf61874daadab2482b6 Mon Sep 17 00:00:00 2001
+From a2a4de278ad02f804d25eef1d1e997ade0ded3cc Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Mon, 21 Dec 2020 19:36:54 +0100
 Subject: [PATCH] Let vendor have priority over NFC config file, rather than

@@ -1,4 +1,4 @@
-From 8e7eafac311a395db2ba04b4b3d56e1229b4839f Mon Sep 17 00:00:00 2001
+From 152ffa56a6b1fe6fc96638a4d389a2fc5a352be1 Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Tue, 7 May 2024 19:28:41 -0400
 Subject: [PATCH] Disable O_DIRECT for old kernels

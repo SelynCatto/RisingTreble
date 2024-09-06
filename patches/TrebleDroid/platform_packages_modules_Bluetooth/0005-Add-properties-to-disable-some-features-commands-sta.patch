@@ -1,7 +1,7 @@
-From f0424361a5045600b98d8a3455727274e2be913b Mon Sep 17 00:00:00 2001
+From 12cd641692a3abdba03deb0ac146bb30aa908afb Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Sat, 27 May 2023 06:41:32 -0400
-Subject: [PATCH 4/6] Add properties to disable some features/commands/states
+Subject: [PATCH 5/7] Add properties to disable some features/commands/states
  that the ble chip declared but doesnt actually support
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH 4/6] Add properties to disable some features/commands/states
  1 file changed, 69 insertions(+), 4 deletions(-)
 
 diff --git a/system/gd/hci/controller.cc b/system/gd/hci/controller.cc
-index edf907a..f50183c 100644
+index 6facfef4c3..250704d45c 100644
 --- a/system/gd/hci/controller.cc
 +++ b/system/gd/hci/controller.cc
 @@ -19,6 +19,7 @@
@@ -28,7 +28,7 @@ index edf907a..f50183c 100644
  
  namespace bluetooth {
  namespace hci {
-@@ -323,7 +325,23 @@ struct Controller::impl {
+@@ -316,7 +318,23 @@ struct Controller::impl {
      ASSERT(complete_view.IsValid());
      ErrorCode status = complete_view.GetStatus();
      ASSERT_LOG(status == ErrorCode::SUCCESS, "Status 0x%02hhx, %s", status, ErrorCodeText(status).c_str());
@@ -53,7 +53,7 @@ index edf907a..f50183c 100644
  
      if (auto disabledCommands = os::GetSystemProperty(kPropertyDisabledCommands)) {
        for (const auto& command : android::base::Split(*disabledCommands, ",")) {
-@@ -341,7 +359,26 @@ struct Controller::impl {
+@@ -334,7 +352,26 @@ struct Controller::impl {
      ErrorCode status = complete_view.GetStatus();
      ASSERT_LOG(status == ErrorCode::SUCCESS, "Status 0x%02hhx, %s", status, ErrorCodeText(status).c_str());
      uint8_t page_number = complete_view.GetPageNumber();
@@ -81,7 +81,7 @@ index edf907a..f50183c 100644
      bluetooth::os::LogMetricBluetoothLocalSupportedFeatures(page_number, complete_view.GetExtendedLmpFeatures());
      // Query all extended features
      if (page_number < complete_view.GetMaximumPageNumber()) {
-@@ -494,7 +531,21 @@ struct Controller::impl {
+@@ -487,7 +524,21 @@ struct Controller::impl {
      ASSERT(complete_view.IsValid());
      ErrorCode status = complete_view.GetStatus();
      ASSERT_LOG(status == ErrorCode::SUCCESS, "Status 0x%02hhx, %s", status, ErrorCodeText(status).c_str());
@@ -104,7 +104,7 @@ index edf907a..f50183c 100644
    }
  
    void le_read_supported_states_handler(CommandCompleteView view) {
-@@ -502,7 +553,21 @@ struct Controller::impl {
+@@ -495,7 +546,21 @@ struct Controller::impl {
      ASSERT(complete_view.IsValid());
      ErrorCode status = complete_view.GetStatus();
      ASSERT_LOG(status == ErrorCode::SUCCESS, "Status 0x%02hhx, %s", status, ErrorCodeText(status).c_str());

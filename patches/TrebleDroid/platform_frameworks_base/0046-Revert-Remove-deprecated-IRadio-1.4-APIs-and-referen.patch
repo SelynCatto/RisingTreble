@@ -1,4 +1,4 @@
-From d86bf24b0793b4d2aeb07740c752d7804251578c Mon Sep 17 00:00:00 2001
+From 9274124772eb47e36c2406f70333cd16d3fc5b23 Mon Sep 17 00:00:00 2001
 From: Alberto Ponces <ponces26@gmail.com>
 Date: Sun, 31 Mar 2024 23:38:19 +0000
 Subject: [PATCH 46/49] Revert "Remove deprecated IRadio <1.4 APIs and
@@ -12,11 +12,11 @@ This reverts commit 4d53aa0caec7029bf6c9b5789c1708bc4bb71b76.
  3 files changed, 39 insertions(+)
 
 diff --git a/telephony/java/android/telephony/TelephonyManager.java b/telephony/java/android/telephony/TelephonyManager.java
-index ab117f018..cad478a54 100644
+index ab117f018..7f9d8d0d1 100644
 --- a/telephony/java/android/telephony/TelephonyManager.java
 +++ b/telephony/java/android/telephony/TelephonyManager.java
-@@ -12078,6 +12078,29 @@ public class TelephonyManager {
-         return false;
+@@ -11489,6 +11489,29 @@ public class TelephonyManager {
+         return result;
      }
  
 +    /**
@@ -43,8 +43,8 @@ index ab117f018..cad478a54 100644
 +    }
 +
      /**
-      * @throws UnsupportedOperationException If the device does not have
-      *          {@link PackageManager#FEATURE_TELEPHONY_IMS}.
+      * Shut down all the live radios over all the slot indexes.
+      *
 diff --git a/telephony/java/com/android/internal/telephony/ITelephony.aidl b/telephony/java/com/android/internal/telephony/ITelephony.aidl
 index ff2ee27ab..d7ca28c44 100644
 --- a/telephony/java/com/android/internal/telephony/ITelephony.aidl

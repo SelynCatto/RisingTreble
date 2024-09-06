@@ -1,4 +1,4 @@
-From 72c917fe2802f8dee156ae0a69bd4b58199281a5 Mon Sep 17 00:00:00 2001
+From 28c6db708eff97b0e159d88c3fb8102f3915c5d8 Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Wed, 17 Apr 2024 04:49:18 -0400
 Subject: [PATCH 47/49] Don't crash system_server if we fail to parse dynamic

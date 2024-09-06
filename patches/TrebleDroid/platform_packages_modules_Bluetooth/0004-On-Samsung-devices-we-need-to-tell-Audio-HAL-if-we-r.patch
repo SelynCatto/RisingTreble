@@ -1,7 +1,7 @@
-From 20d5a771399d60e28cf4353796dc2a5215480829 Mon Sep 17 00:00:00 2001
+From f4580182ac732393ee42b5fda02ed6daa9ea605a Mon Sep 17 00:00:00 2001
 From: Andreas Schneider <asn@cryptomilk.org>
 Date: Sat, 12 Nov 2022 00:35:46 +0000
-Subject: [PATCH 3/6] On Samsung devices, we need to tell Audio HAL if we're
+Subject: [PATCH 4/7] On Samsung devices, we need to tell Audio HAL if we're
  running narrow band or wide band
 
 Ported to Android 13.
@@ -12,7 +12,7 @@ Change-Id: I7802b7a29c017a2cd7018e82772183df1dfa0b89
  1 file changed, 8 insertions(+)
 
 diff --git a/android/app/src/com/android/bluetooth/hfp/HeadsetStateMachine.java b/android/app/src/com/android/bluetooth/hfp/HeadsetStateMachine.java
-index 38db4dc..f764f6a 100644
+index 38db4dc656..f764f6aa9d 100644
 --- a/android/app/src/com/android/bluetooth/hfp/HeadsetStateMachine.java
 +++ b/android/app/src/com/android/bluetooth/hfp/HeadsetStateMachine.java
 @@ -158,6 +158,7 @@ public class HeadsetStateMachine extends StateMachine {

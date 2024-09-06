@@ -1,4 +1,4 @@
-From 155cf18f5ee8608c065f9b38bc3e073d1c78a37a Mon Sep 17 00:00:00 2001
+From bf9013370a5b3844772821821a9a5c118e13da47 Mon Sep 17 00:00:00 2001
 From: ponces <ponces26@gmail.com>
 Date: Mon, 24 Oct 2022 09:38:34 +0100
 Subject: [PATCH 18/23] voip: Fix high pitched voice on Qualcomm devices

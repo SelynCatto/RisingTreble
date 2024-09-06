@@ -1,4 +1,4 @@
-From 61405bd8df2e4c48f0eb87d102f9bed231a0471b Mon Sep 17 00:00:00 2001
+From baa38ad61c23b6be74206ea2edd16523b06b89db Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Mon, 29 Jan 2024 17:15:38 -0500
 Subject: [PATCH 42/49] Bunch of FOD stuff -- commonize refreshing the
@@ -9,7 +9,7 @@ Subject: [PATCH 42/49] Bunch of FOD stuff -- commonize refreshing the
  1 file changed, 138 insertions(+), 19 deletions(-)
 
 diff --git a/services/core/java/com/android/server/biometrics/AuthService.java b/services/core/java/com/android/server/biometrics/AuthService.java
-index e9980e526..53b37fd3d 100644
+index b5094487b..ecdb1a689 100644
 --- a/services/core/java/com/android/server/biometrics/AuthService.java
 +++ b/services/core/java/com/android/server/biometrics/AuthService.java
 @@ -48,6 +48,7 @@ import android.hardware.biometrics.IAuthService;
@@ -139,14 +139,12 @@ index e9980e526..53b37fd3d 100644
      @Override
      public void onStart() {
          mBiometricService = mInjector.getBiometricService();
-@@ -809,22 +908,13 @@ public class AuthService extends SystemService {
-         } else {
-             // Registers HIDL and AIDL authenticators, but only HIDL configs need to be provided.
+@@ -811,20 +910,11 @@ public class AuthService extends SystemService {
              registerAuthenticators(hidlConfigs);
-+
-+        refreshVendorServices();
          }
  
++        refreshVendorServices();
++
          mInjector.publishBinderService(this, mImpl);
 -        try {
 -            mSamsungFingerprint = ISehBiometricsFingerprint.getService();
@@ -177,7 +175,7 @@ index e9980e526..53b37fd3d 100644
                      Slog.d("PHH-Enroll", "New actual mask brightness is " + actualMask);
                      try {
                          int eventReq = 0;
-@@ -1207,22 +1295,53 @@ public class AuthService extends SystemService {
+@@ -1223,22 +1311,53 @@ public class AuthService extends SystemService {
              udfpsProps[2] = (int)mW;
  
              try {

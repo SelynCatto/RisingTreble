@@ -1,4 +1,4 @@
-From ec536b2f5704c7d76151162b2c1405e6d1e5e7af Mon Sep 17 00:00:00 2001
+From 030d69bec47bd28a07d59bd25896a0ec015a0f4f Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Wed, 21 Feb 2024 12:50:28 -0500
 Subject: [PATCH 12/14] Initialize Samsung AIDL ISehRadioNetwork. Fixes 5G on

@@ -1,7 +1,7 @@
-From a471c4cdb0da9f712aa0a45fe496aa5e0663d076 Mon Sep 17 00:00:00 2001
+From ec8d3560a00df0a22e1eb93614f15721f5662342 Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Wed, 26 Oct 2022 17:59:11 -0400
-Subject: [PATCH 16/24] Fix support for devices without cgroupv2 support
+Subject: [PATCH 17/25] Fix support for devices without cgroupv2 support
 
 This is technically a revert of 1bd1746447.
 The warning inside the commit doesn't really apply to us, because the

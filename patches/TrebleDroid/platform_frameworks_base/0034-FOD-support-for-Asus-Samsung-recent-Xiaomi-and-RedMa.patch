@@ -1,4 +1,4 @@
-From 7d8a42636a424605a2c04821c3d1773db210354b Mon Sep 17 00:00:00 2001
+From 7f681f2f35263099a7371c127223f833ed716893 Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Sun, 18 Dec 2022 18:20:40 -0500
 Subject: [PATCH 34/49] FOD support for Asus, Samsung recent Xiaomi and
@@ -566,7 +566,7 @@ index 5e621ae44..1a29ae67c 100644
      javac_shard_size: 50,
      javacflags: [
 diff --git a/services/core/java/com/android/server/biometrics/AuthService.java b/services/core/java/com/android/server/biometrics/AuthService.java
-index eef5e79e4..e9980e526 100644
+index 0acbf633e..b5094487b 100644
 --- a/services/core/java/com/android/server/biometrics/AuthService.java
 +++ b/services/core/java/com/android/server/biometrics/AuthService.java
 @@ -85,6 +85,25 @@ import java.util.ArrayList;
@@ -724,7 +724,7 @@ index eef5e79e4..e9980e526 100644
      }
  
      private void registerAuthenticators() {
-@@ -1039,19 +1159,123 @@ public class AuthService extends SystemService {
+@@ -1055,19 +1175,123 @@ public class AuthService extends SystemService {
                  ? modality : (modality & ~BiometricAuthenticator.TYPE_CREDENTIAL);
      }
  
@@ -850,7 +850,7 @@ index eef5e79e4..e9980e526 100644
          // config_is_powerbutton_fps indicates whether device has a power button fingerprint sensor.
          final boolean isPowerbuttonFps = getContext().getResources().getBoolean(
                  R.bool.config_is_powerbutton_fps);
-@@ -1118,4 +1342,67 @@ public class AuthService extends SystemService {
+@@ -1134,4 +1358,67 @@ public class AuthService extends SystemService {
                  componentInfo, resetLockoutRequiresHardwareAuthToken,
                  resetLockoutRequiresChallenge);
      }

@@ -1,7 +1,7 @@
-From 7bc2f4e29167a289a16ec5401b5bb227794270f6 Mon Sep 17 00:00:00 2001
+From 91c4f01f0daefe7fb7f01782bbb1102c4fb6f033 Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Sat, 3 Feb 2024 07:38:33 -0500
-Subject: [PATCH 11/12] Increase SW_MAX *= 4
+Subject: [PATCH 11/14] Increase SW_MAX *= 4
 
 We increase the size of SW_MAX for two reasons:
 1. SW_MACHINE_COVER which is SW_MAX is ignored, guessing an off by one

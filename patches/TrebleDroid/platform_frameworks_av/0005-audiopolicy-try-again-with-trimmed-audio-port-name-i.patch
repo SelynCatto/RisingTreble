@@ -1,4 +1,4 @@
-From ec04aa5275d59660d66445886a6a05ba471c0393 Mon Sep 17 00:00:00 2001
+From 23457aa9a4c38380ff7b88a2dc1c3f5177df21f9 Mon Sep 17 00:00:00 2001
 From: Peter Cai <peter@typeblog.net>
 Date: Thu, 23 Jan 2020 11:13:43 +0800
 Subject: [PATCH 05/23] audiopolicy: try again with trimmed audio port name if

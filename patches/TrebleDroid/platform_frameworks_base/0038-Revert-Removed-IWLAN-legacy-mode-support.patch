@@ -1,4 +1,4 @@
-From 04841dc91cb70080e0598b4bf6b8f7ad59e978e8 Mon Sep 17 00:00:00 2001
+From 8d28a83dff7e559958dd2c5505fc88b7173c651c Mon Sep 17 00:00:00 2001
 From: Alberto Ponces <ponces26@gmail.com>
 Date: Fri, 20 Oct 2023 09:26:19 +0000
 Subject: [PATCH 38/49] Revert "Removed IWLAN legacy mode support"

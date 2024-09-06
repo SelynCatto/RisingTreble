@@ -1,4 +1,4 @@
-From 9c9d1d0d377d991115ee3553079d74dfcc3a2fdc Mon Sep 17 00:00:00 2001
+From 072d6de208ba0825bfdbd4ef285ee2efc968b163 Mon Sep 17 00:00:00 2001
 From: danielzhang130 <37479705+danielzhang130@users.noreply.github.com>
 Date: Fri, 12 Apr 2024 13:01:08 -0400
 Subject: [PATCH 2/2] Fix sepolicy for kernel < 5.10 that doesn't support bpf

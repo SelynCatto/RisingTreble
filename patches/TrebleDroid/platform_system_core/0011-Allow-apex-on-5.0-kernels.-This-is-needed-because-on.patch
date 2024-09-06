@@ -1,7 +1,7 @@
-From aaa0b06d176b12db84eed4fec0c1746bbf403adb Mon Sep 17 00:00:00 2001
+From 38164c434ebd1adfaba1d7b3a0a1b5acd805659e Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Fri, 28 Apr 2023 12:29:05 -0400
-Subject: [PATCH 10/24] Allow apex on > 5.0 kernels. This is needed because on
+Subject: [PATCH 11/25] Allow apex on > 5.0 kernels. This is needed because on
  Pixels, camera HAL are exclusively in vendor apex
 
 Change-Id: I334cde4c5557b0ff70d550205c5bb727d4b5dbf5
@@ -10,17 +10,17 @@ Change-Id: I334cde4c5557b0ff70d550205c5bb727d4b5dbf5
  1 file changed, 14 insertions(+), 1 deletion(-)
 
 diff --git a/init/property_service.cpp b/init/property_service.cpp
-index 600c465..a86c585 100644
+index 600c465..2eab983 100644
 --- a/init/property_service.cpp
 +++ b/init/property_service.cpp
-@@ -65,6 +65,7 @@
+@@ -64,6 +64,7 @@
+ #include <selinux/android.h>
  #include <selinux/label.h>
  #include <selinux/selinux.h>
- #include <vendorsupport/api_level.h>
 +#include <sys/utsname.h>
+ #include <vendorsupport/api_level.h>
  
  #include "debug_ramdisk.h"
- #include "epoll.h"
 @@ -712,6 +713,16 @@ uint32_t InitPropertySet(const std::string& name, const std::string& value) {
  static Result<void> load_properties_from_file(const char*, const char*,
                                                std::map<std::string, std::string>*);

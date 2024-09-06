@@ -1,4 +1,4 @@
-From a1220a1d18b150e362f1557681bc8e41010bc919 Mon Sep 17 00:00:00 2001
+From 14b5e07d7b0d4b9785d0e9535b659a8794626565 Mon Sep 17 00:00:00 2001
 From: Adithya R <gh0strider.2k18.reborn@gmail.com>
 Date: Thu, 18 Aug 2022 21:29:34 +0530
 Subject: [PATCH 4/4] core: sysprop: Write build display id to product prop

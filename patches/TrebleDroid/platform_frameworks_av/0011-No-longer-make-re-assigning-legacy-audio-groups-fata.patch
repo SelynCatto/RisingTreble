@@ -1,4 +1,4 @@
-From c9dce4a910a14f4f7407572752e170a0cb5b867a Mon Sep 17 00:00:00 2001
+From c24c7beaf7c9d0776229deae617d2daffe52561a Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Sat, 12 Sep 2020 12:32:50 +0200
 Subject: [PATCH 11/23] No longer make re-assigning legacy audio groups fatal.

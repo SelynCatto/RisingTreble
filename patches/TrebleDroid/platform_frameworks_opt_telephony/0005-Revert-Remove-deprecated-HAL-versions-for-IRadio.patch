@@ -1,4 +1,4 @@
-From 447354ffdc06f6b9c91467b8c3282913c5825f70 Mon Sep 17 00:00:00 2001
+From 5191a387ffde956c8f1cf169686d4a065df10fe9 Mon Sep 17 00:00:00 2001
 From: Daniel Zhang <danielzhang130@gmail.com>
 Date: Sat, 30 Mar 2024 14:44:57 -0400
 Subject: [PATCH 05/14] Revert "Remove deprecated HAL versions for IRadio"
@@ -6753,7 +6753,7 @@ index e57a61d..7f46424 100644
                      emergencyNumberInfo.getEmergencyServiceCategoryBitmaskInternalDial(),
                      emergencyNumberInfo.getEmergencyUrns() != null
 diff --git a/tests/telephonytests/src/com/android/internal/telephony/RILTest.java b/tests/telephonytests/src/com/android/internal/telephony/RILTest.java
-index 28d75b2..e8a39f9 100644
+index b285f0f..c0e5d67 100644
 --- a/tests/telephonytests/src/com/android/internal/telephony/RILTest.java
 +++ b/tests/telephonytests/src/com/android/internal/telephony/RILTest.java
 @@ -142,7 +142,6 @@ import android.os.RemoteException;
@@ -6862,7 +6862,7 @@ index 28d75b2..e8a39f9 100644
          } catch (Exception e) {
          }
      }
-@@ -1595,694 +1608,460 @@ public class RILTest extends TelephonyTest {
+@@ -1596,694 +1609,460 @@ public class RILTest extends TelephonyTest {
          return respInfo;
      }
  
@@ -7907,7 +7907,7 @@ index 28d75b2..e8a39f9 100644
          assertEquals(expected, cellInfoCdma);
      }
  
-@@ -2328,8 +2107,170 @@ public class RILTest extends TelephonyTest {
+@@ -2329,8 +2108,170 @@ public class RILTest extends TelephonyTest {
          assertEquals(expectedSignalStrength, signalStrengthNr);
      }
  
@@ -8078,7 +8078,7 @@ index 28d75b2..e8a39f9 100644
          DataCallResponse response = new DataCallResponse.Builder()
                  .setCause(0)
                  .setRetryDurationMillis(-1L)
-@@ -2355,6 +2296,8 @@ public class RILTest extends TelephonyTest {
+@@ -2356,6 +2297,8 @@ public class RILTest extends TelephonyTest {
                  .setTrafficDescriptors(new ArrayList<>())
                  .build();
  
@@ -8087,7 +8087,7 @@ index 28d75b2..e8a39f9 100644
          // Test V1.4 SetupDataCallResult
          android.hardware.radio.V1_4.SetupDataCallResult result14 =
                  new android.hardware.radio.V1_4.SetupDataCallResult();
-@@ -2591,7 +2534,11 @@ public class RILTest extends TelephonyTest {
+@@ -2592,7 +2535,11 @@ public class RILTest extends TelephonyTest {
          ArrayList<Object> records = new ArrayList<>();
  
          for (int i = 0; i < 5 /* arbitrary */; i++) {
@@ -8100,7 +8100,7 @@ index 28d75b2..e8a39f9 100644
              record.info.lte().base.cellIdentityLte.base.ci += i; // make them marginally unique
  
              records.add(record);
-@@ -2606,6 +2553,181 @@ public class RILTest extends TelephonyTest {
+@@ -2607,6 +2554,181 @@ public class RILTest extends TelephonyTest {
          }
      }
  
@@ -8282,7 +8282,7 @@ index 28d75b2..e8a39f9 100644
      @Test
      public void testSetupDataCall() throws Exception {
          ApnSetting apn = new ApnSetting.Builder()
-@@ -2635,8 +2757,8 @@ public class RILTest extends TelephonyTest {
+@@ -2636,8 +2758,8 @@ public class RILTest extends TelephonyTest {
                  obtainMessage());
          ArgumentCaptor<DataProfile> dpiCaptor = ArgumentCaptor.forClass(DataProfile.class);
          verify(mDataProxy).setupDataCall(mSerialNumberCaptor.capture(),
@@ -8293,7 +8293,7 @@ index 28d75b2..e8a39f9 100644
          verifyRILResponse(
                  mRILUnderTest, mSerialNumberCaptor.getValue(), RIL_REQUEST_SETUP_DATA_CALL);
          DataProfile dpi = dpiCaptor.getValue();
-@@ -2654,6 +2776,46 @@ public class RILTest extends TelephonyTest {
+@@ -2655,6 +2777,46 @@ public class RILTest extends TelephonyTest {
          assertEquals(MTU, dpi.getMtu());
      }
  
@@ -8340,7 +8340,7 @@ index 28d75b2..e8a39f9 100644
      @Test
      public void testCreateCarrierRestrictionList() {
          ArrayList<CarrierIdentifier> carriers = new ArrayList<>();
-@@ -2697,7 +2859,7 @@ public class RILTest extends TelephonyTest {
+@@ -2698,7 +2860,7 @@ public class RILTest extends TelephonyTest {
  
          ArrayList<Carrier> result = RILUtils.convertToHalCarrierRestrictionList(carriers);
  
@@ -8349,7 +8349,7 @@ index 28d75b2..e8a39f9 100644
      }
  
      @Test
-@@ -2744,27 +2906,27 @@ public class RILTest extends TelephonyTest {
+@@ -2745,27 +2907,27 @@ public class RILTest extends TelephonyTest {
          verify(mSimProxy, never()).areUiccApplicationsEnabled(mSerialNumberCaptor.capture());
          // Sending message is handled by getRadioProxy when proxy is null.
          // areUiccApplicationsEnabled shouldn't explicitly send another callback.
@@ -8385,7 +8385,7 @@ index 28d75b2..e8a39f9 100644
      }
  
      @FlakyTest
-@@ -2803,7 +2965,7 @@ public class RILTest extends TelephonyTest {
+@@ -2804,7 +2966,7 @@ public class RILTest extends TelephonyTest {
          Message message = obtainMessage();
          mRILUnderTest.getImei(message);
          AsyncResult ar = (AsyncResult) message.obj;
@@ -8394,7 +8394,7 @@ index 28d75b2..e8a39f9 100644
          Assert.assertNotNull(ar.exception.getMessage());
          Assert.assertEquals("REQUEST_NOT_SUPPORTED", ar.exception.getMessage());
      }
-@@ -2816,7 +2978,8 @@ public class RILTest extends TelephonyTest {
+@@ -2817,7 +2979,8 @@ public class RILTest extends TelephonyTest {
          Handler handler = new Handler(handlerThread.getLooper()) {
              public void handleMessage(Message msg) {
                  AsyncResult ar = (AsyncResult) msg.obj;
@@ -8404,7 +8404,7 @@ index 28d75b2..e8a39f9 100644
                      CommandException.Error err =
                              ((CommandException) (ar.exception)).getCommandError();
                      if (err == CommandException.Error.SYSTEM_ERR) {
-@@ -2846,7 +3009,8 @@ public class RILTest extends TelephonyTest {
+@@ -2847,7 +3010,8 @@ public class RILTest extends TelephonyTest {
          Handler handler = new Handler(handlerThread.getLooper()) {
              public void handleMessage(Message msg) {
                  AsyncResult ar = (AsyncResult) msg.obj;
@@ -8415,7 +8415,7 @@ index 28d75b2..e8a39f9 100644
                              ((CommandException) (ar.exception)).getCommandError();
                      if (err == CommandException.Error.RADIO_NOT_AVAILABLE) {
 diff --git a/tests/telephonytests/src/com/android/internal/telephony/SimulatedCommands.java b/tests/telephonytests/src/com/android/internal/telephony/SimulatedCommands.java
-index ed1b265..798e7f6 100644
+index e56b0a8..9f34835 100644
 --- a/tests/telephonytests/src/com/android/internal/telephony/SimulatedCommands.java
 +++ b/tests/telephonytests/src/com/android/internal/telephony/SimulatedCommands.java
 @@ -18,10 +18,9 @@ package com.android.internal.telephony.test;

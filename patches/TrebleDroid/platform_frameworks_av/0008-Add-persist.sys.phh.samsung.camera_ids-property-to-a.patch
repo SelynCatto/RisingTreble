@@ -1,4 +1,4 @@
-From b6f7b2ed6119a44b7f7d7a79d00deb5d255af5ff Mon Sep 17 00:00:00 2001
+From 293c44713b6e080ff50a8eb624bd5fb7dff4dd3c Mon Sep 17 00:00:00 2001
 From: Pierre-Hugues Husson <phh@phh.me>
 Date: Thu, 14 May 2020 19:54:55 +0200
 Subject: [PATCH 08/23] Add persist.sys.phh.samsung.camera_ids property to
